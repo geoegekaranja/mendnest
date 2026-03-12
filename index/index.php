@@ -1,4 +1,4 @@
-<?php include 'includes/header.php'; ?>
+<?php include '../includes/header.php'; ?>
 
 <!-- HERO / WELCOME SECTION -->
 <section class="hero bg-success text-white text-center d-flex align-items-center" style="height:70vh;">
@@ -192,4 +192,4 @@ patients to receive medical support while remaining comfortable in their homes.
 
 </section>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
