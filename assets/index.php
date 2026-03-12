@@ -1,18 +1,21 @@
 <?php include '../includes/header.php'; ?>
 
+
 <!-- HERO SECTION -->
-<section class="hero text-center bg-success text-white p-5">
+<section class="hero text-center text-white d-flex align-items-center" style="background:#198754; min-height:70vh;">
 
 <div class="container">
 
-<h1>Professional Home Nursing Care</h1>
+<h1 class="display-4 fw-bold mb-3">
+Professional Home Nursing Care
+</h1>
 
-<p>
+<p class="lead mb-4">
 Mend Nest KE provides compassionate and reliable home nursing services,
 ensuring patients receive professional healthcare in the comfort of their homes.
 </p>
 
-<a href="../consultation.php" class="btn btn-light">
+<a href="consultation.php" class="btn btn-light btn-lg">
 Book Consultation
 </a>
 
@@ -21,48 +24,80 @@ Book Consultation
 </section>
 
 
+
 <!-- SERVICES -->
-<section class="services container py-5">
+<section class="services py-5">
 
-<h2 class="text-center mb-4">Our Services</h2>
+<div class="container">
 
-<div class="row text-center">
+<h2 class="text-center fw-bold mb-5">
+Our Services
+</h2>
+
+<div class="row text-center g-4">
+
 
 <div class="col-md-4">
 
-<h4>Medication & Treatment</h4>
+<div class="card shadow-sm h-100 p-4 border-0">
 
-<p>Injection and IV treatment at home.</p>
+<h4 class="mb-3">Medication & Treatment</h4>
 
-<a href="services.php" class="btn btn-success btn-sm">
+<p>
+Professional administration of medication including injections
+and IV therapy at home.
+</p>
+
+<a href="service.php" class="btn btn-success btn-sm mt-2">
 Learn More
 </a>
 
 </div>
 
+</div>
+
+
 
 <div class="col-md-4">
 
-<h4>Wound Care</h4>
+<div class="card shadow-sm h-100 p-4 border-0">
 
-<p>Surgical wound care and dressing.</p>
+<h4 class="mb-3">Wound Care</h4>
 
-<a href="services.php" class="btn btn-success btn-sm">
+<p>
+Expert wound care services including surgical dressing
+and infection prevention.
+</p>
+
+<a href="service.php" class="btn btn-success btn-sm mt-2">
 Learn More
 </a>
 
 </div>
 
+</div>
+
+
 
 <div class="col-md-4">
 
-<h4>IV Hydration</h4>
+<div class="card shadow-sm h-100 p-4 border-0">
 
-<p>Vitamin and hydration therapy.</p>
+<h4 class="mb-3">IV Hydration</h4>
 
-<a href="services.php" class="btn btn-success btn-sm">
+<p>
+Vitamin infusion and hydration therapy to improve
+recovery, wellness and overall health.
+</p>
+
+<a href="service.php" class="btn btn-success btn-sm mt-2">
 Learn More
 </a>
+
+</div>
+
+</div>
+
 
 </div>
 
@@ -71,26 +106,32 @@ Learn More
 </section>
 
 
-<!-- LOGIN SECTION -->
-<section class="bg-light text-center py-5">
 
-<div class="container">
+<!-- LOGIN / ACCOUNT ACCESS -->
+<section class="bg-light py-5">
 
-<h2>Access Your Account</h2>
+<div class="container text-center">
 
-<p>Login to manage consultations and services.</p>
+<h2 class="fw-bold mb-3">
+Access Your Account
+</h2>
 
-<a href="../patient/login.php" class="btn btn-primary m-2">
+<p class="mb-4">
+Login to manage consultations, appointments and services with Mend Nest KE.
+</p>
+
+<a href="../patient/login.php" class="btn btn-primary btn-lg me-2">
 Patient Login
 </a>
 
-<a href="../admin/login.php" class="btn btn-dark m-2">
+<a href="../admin/login.php" class="btn btn-dark btn-lg">
 Admin Login
 </a>
 
 </div>
 
 </section>
+
 
 
 <?php include '../includes/footer.php'; ?>
