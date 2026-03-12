@@ -1,0 +1,283 @@
+/* =========================
+MEND NEST KE PROFESSIONAL THEME
+========================= */
+
+/* Theme Colors */
+:root{
+--primary-color:#0d6efd;
+--secondary-color:#198754;
+--light-bg:#f4f6f9;
+--dark-text:#333;
+--white:#ffffff;
+--shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* =========================
+GENERAL BODY
+========================= */
+
+body{
+font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background:var(--light-bg);
+color:var(--dark-text);
+margin:0;
+padding:0;
+line-height:1.6;
+}
+
+/* Headings */
+
+h1,h2,h3,h4,h5{
+color:var(--primary-color);
+font-weight:600;
+}
+
+/* Links */
+
+a{
+text-decoration:none;
+color:var(--primary-color);
+}
+
+a:hover{
+color:var(--secondary-color);
+}
+
+/* =========================
+NAVBAR
+========================= */
+
+.navbar{
+background:var(--white);
+box-shadow:var(--shadow);
+}
+
+.navbar-brand{
+font-weight:bold;
+color:var(--primary-color);
+}
+
+.navbar-nav .nav-link{
+color:#555;
+margin-left:15px;
+}
+
+.navbar-nav .nav-link:hover{
+color:var(--primary-color);
+}
+
+/* =========================
+HERO SECTION
+========================= */
+
+.hero{
+background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),
+url('../images/nurse-care.jpg');
+background-size:cover;
+background-position:center;
+color:white;
+text-align:center;
+padding:120px 20px;
+}
+
+.hero h1{
+font-size:48px;
+margin-bottom:20px;
+}
+
+.hero p{
+font-size:20px;
+margin-bottom:30px;
+}
+
+/* =========================
+SECTIONS
+========================= */
+
+section{
+padding:60px 0;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:0 20px;
+}
+
+/* =========================
+SERVICES CARDS
+========================= */
+
+.services h2{
+text-align:center;
+margin-bottom:40px;
+}
+
+.services .col-md-4{
+background:white;
+padding:30px;
+margin-bottom:20px;
+border-radius:10px;
+box-shadow:var(--shadow);
+transition:0.3s;
+}
+
+.services .col-md-4:hover{
+transform:translateY(-5px);
+}
+
+/* =========================
+BUTTONS
+========================= */
+
+.btn-primary{
+background:var(--primary-color);
+border:none;
+}
+
+.btn-primary:hover{
+background:#0b5ed7;
+}
+
+.btn-success{
+background:var(--secondary-color);
+border:none;
+}
+
+.btn-success:hover{
+background:#157347;
+}
+
+/* =========================
+FORMS
+========================= */
+
+form{
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:var(--shadow);
+}
+
+.form-control{
+border-radius:5px;
+padding:10px;
+}
+
+label{
+font-weight:500;
+}
+
+/* =========================
+LOGIN PAGE
+========================= */
+
+.login-container{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#0d6efd,#198754);
+}
+
+.login-card{
+background:white;
+padding:40px;
+width:350px;
+border-radius:12px;
+box-shadow:var(--shadow);
+}
+
+.login-card h2{
+text-align:center;
+margin-bottom:25px;
+}
+
+/* =========================
+ADMIN DASHBOARD
+========================= */
+
+.sidebar{
+width:220px;
+height:100vh;
+background:var(--primary-color);
+color:white;
+position:fixed;
+padding-top:20px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:12px 20px;
+}
+
+.sidebar a:hover{
+background:rgba(255,255,255,0.2);
+}
+
+.dashboard-content{
+margin-left:240px;
+padding:30px;
+}
+
+/* =========================
+TABLES
+========================= */
+
+table{
+width:100%;
+background:white;
+border-radius:8px;
+overflow:hidden;
+box-shadow:var(--shadow);
+}
+
+table th{
+background:var(--primary-color);
+color:white;
+padding:12px;
+}
+
+table td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+
+/* =========================
+FOOTER
+========================= */
+
+footer{
+background:#111;
+color:white;
+text-align:center;
+padding:20px;
+margin-top:40px;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media(max-width:768px){
+
+.hero h1{
+font-size:32px;
+}
+
+.hero p{
+font-size:18px;
+}
+
+.sidebar{
+width:100%;
+height:auto;
+position:relative;
+}
+
+.dashboard-content{
+margin-left:0;
+}
+
+}
