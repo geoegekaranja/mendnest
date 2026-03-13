@@ -15,13 +15,13 @@ box-shadow:0 2px 8px rgba(0,0,0,0.08);
 .navbar-brand{
 font-weight:700;
 font-size:22px;
-color:#198754 !important;
+color:#6ff2b5 !important;
 }
 
 /* HERO SECTION */
 
 .hero{
-background:#198754;
+background:#64f4b1;
 color:white;
 padding:120px 20px;
 text-align:center;
@@ -42,7 +42,7 @@ margin:auto;
 /* BUTTONS */
 
 .btn-success{
-background:#198754;
+background:#7ef5be;
 border:none;
 padding:10px 25px;
 border-radius:6px;
