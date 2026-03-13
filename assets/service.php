@@ -1,8 +1,10 @@
 <?php include "includes/header.php"; ?>
+<?php include "assets/connection.php"; ?>
 
 <section class="py-5 bg-light">
 
 <div class="container">
+    <link rel="stylesheet" href="/mendnest/css/style.css">
 
 <h2 class="text-center fw-bold mb-5">
 Our Home Nursing Services

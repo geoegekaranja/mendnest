@@ -1,4 +1,8 @@
+<?php
+include '../assets/connection.php';
+?>
 <div class="container py-5">
+    <link rel="stylesheet" href="/mendnest/css/style.css">
 
 <h2 class="text-center fw-bold mb-4">Get in Touch</h2>
 

@@ -1,4 +1,5 @@
 <?php include "includes/header.php"; ?>
+<link rel="stylesheet" href="/mendnest/css/style.css">
 
 <h2>About Us</h2>
 <p>

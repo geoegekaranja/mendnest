@@ -1,7 +1,7 @@
 <?php
 
 include "includes/header.php";
-include "includes/db.php";
+include "assets/connection.php";
 
 if($_SERVER["REQUEST_METHOD"]=="POST"){
 
@@ -24,6 +24,7 @@ echo "<div class='alert alert-success text-center'>Appointment booked successful
 ?>
 
 <div class="container mt-5">
+    <link rel="stylesheet" href="/mendnest/css/style.css">
 
 <h2 class="text-center mb-4">Book Appointment</h2>
 

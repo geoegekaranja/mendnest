@@ -1,5 +1,5 @@
 <?php
-include 'database/connection.php';
+include 'assets/connection.php';
 
 if(isset($_POST['book'])){
 
@@ -18,6 +18,7 @@ echo "Booking submitted successfully";
 }
 
 ?>
+<link rel="stylesheet" href="/mendnest/css/style.css">
 
 <form method="POST">
 
