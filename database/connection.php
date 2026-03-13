@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-include '../database/connection.php';
+include 'connection.php';
 
 if(isset($_POST['login'])){
 
