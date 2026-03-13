@@ -1,7 +1,8 @@
-<?php include "includes/header.php"; ?>
-<?php include "assets/connection.php"; ?>
-
-<section class="py-5 bg-light">
+<?php
+include "../includes/header.php";
+include "../database/connection.php";
+?>
+<section class="services-page">
 
 <div class="container">
     <link rel="stylesheet" href="/mendnest/css/style.css">

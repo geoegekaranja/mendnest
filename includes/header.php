@@ -62,37 +62,6 @@ Mend Nest KE
 </li>
 
 </ul>
-
-<li class="nav-item">
-<a class="nav-link" href="index.php">Home</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="about.php">About</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="services.php">Services</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="consultation.php">Consultation</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="blog.php">Blog</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="testimonials.php">Testimonials</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="contact.php">Contact</a>
-</li>
-
-</ul>
-
 </div>
 
 </div>
