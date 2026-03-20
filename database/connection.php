@@ -1,8 +1,8 @@
 <?php
 
-$conn = mysqli_connect("localhost", "root", "", "mendnest");
+$conn = mysqli_connect("localhost", "root", "", "mendnest_db");
 
-if(!$conn){
+if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
