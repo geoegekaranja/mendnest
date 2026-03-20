@@ -5,25 +5,38 @@ include 'database/connection.php';
 $error = "";
 $success = "";
 
-// REGISTER
+/* ================= REGISTER ================= */
 if(isset($_POST['register'])){
+
     $name = $_POST['name'];
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $check = mysqli_query($conn,"SELECT * FROM patients WHERE email='$email'");
+    // Check if email exists
+    $check = $conn->prepare("SELECT * FROM patients WHERE email=?");
+    $check->bind_param("s", $email);
+    $check->execute();
+    $result = $check->get_result();
 
-    if(mysqli_num_rows($check) > 0){
+    if($result->num_rows > 0){
         $error = "Email already exists!";
     } else {
-        mysqli_query($conn,"INSERT INTO patients (name,email,password)
-                            VALUES ('$name','$email','$password')");
-        $success = "Account created! You can now login.";
+
+        // Insert new user (default role = patient)
+        $stmt = $conn->prepare("INSERT INTO patients (name,email,password,role) VALUES (?,?,?, 'patient')");
+        $stmt->bind_param("sss", $name, $email, $password);
+
+        if($stmt->execute()){
+            $success = "Account created successfully! You can now login.";
+        } else {
+            $error = "Registration failed!";
+        }
     }
 }
 
-// LOGIN
+/* ================= LOGIN ================= */
 if(isset($_POST['login'])){
+
     $email = $_POST['email'];
     $password = $_POST['password'];
 
@@ -33,15 +46,25 @@ if(isset($_POST['login'])){
     $result = $stmt->get_result();
 
     if($result->num_rows == 1){
-        $_SESSION['patient'] = $email;
-        header("Location: patient/dashboard.php");
+
+        $user = $result->fetch_assoc();
+
+        $_SESSION['user'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
+
+        // Redirect based on role
+        if($user['role'] == 'admin'){
+            header("Location: admin/dashboard.php");
+        } else {
+            header("Location: patient/dashboard.php");
+        }
         exit();
+
     } else {
         $error = "Invalid email or password";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
