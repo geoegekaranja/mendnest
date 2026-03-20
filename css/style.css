@@ -1,9 +1,21 @@
-/* GENERAL */
+body {
+    font-family: 'Segoe UI', sans-serif;
+}
 
-body{
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background:#f8f9fa;
-color:#333;
+.hero {
+    background: linear-gradient(rgba(12, 234, 204, 0.6), rgba(0,0,0,0.6)),
+                url('../assets/hero.jpg') center/cover no-repeat;
+    height: 80vh;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    transition: 0.3s;
 }
 
 /* NAVBAR */
