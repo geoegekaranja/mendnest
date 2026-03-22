@@ -74,8 +74,8 @@ if(isset($_POST['login'])){
 
 <style>
 body {
-    background: linear-gradient(135deg,#198754,#20c997);
-    height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background: #31e1d5;
 }
 
 .auth-box {
