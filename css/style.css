@@ -24,7 +24,7 @@ body {
 
 /* NAV LINKS FIX */
 .navbar-nav .nav-link {
-    color: #2c3e50 !important;
+    color: #37e3cf !important;
     font-weight: 500;
 }
 
@@ -164,6 +164,47 @@ h1, h2, h3 {
 .service-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+/* TESTIMONIAL SECTION */
+.testimonial-section {
+    background: #BBD6CE;
+    padding: 60px 0;
+}
+
+/* TESTIMONIAL CARDS */
+.testimonial-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* FORM */
+.testimonial-form-wrapper {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.testimonial-form-wrapper label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.testimonial-form-wrapper .form-control {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.testimonial-form-wrapper .form-control:focus {
+    border-color: #6fa89b;
+    box-shadow: 0 0 5px rgba(187,214,206,0.5);
 }
 
 /* =========================
