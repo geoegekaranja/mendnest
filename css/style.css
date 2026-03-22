@@ -1,13 +1,19 @@
-/* GLOBAL */
+/* =========================
+   GLOBAL
+========================= */
 body {
     font-family: 'Segoe UI', sans-serif;
     background: #BBD6CE;
-    color: #333;
+    color: #2c3e50;
+    line-height: 1.6;
 }
 
-/* NAVBAR */
+/* =========================
+   NAVBAR
+========================= */
 .navbar {
     background: #ffffff !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .navbar-brand {
@@ -16,23 +22,62 @@ body {
     color: #2c3e50 !important;
 }
 
-/* HERO */
+/* NAV LINKS FIX */
+.navbar-nav .nav-link {
+    color: #2c3e50 !important;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #6fa89b !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: #000 !important;
+    font-weight: 600;
+}
+
+/* =========================
+   HERO SECTION
+========================= */
 .hero {
     height: 85vh;
-    background: linear-gradient(rgba(187,214,206,0.7), rgba(187,214,206,0.7)),
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
                 url('../assets/hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
-    color: #fff;
+    justify-content: center;
+    text-align: center;
+    color: #ffffff;
 }
 
-/* SECTIONS */
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: #f1f1f1;
+}
+
+/* =========================
+   SECTIONS
+========================= */
 section {
     padding: 80px 0;
     background: #ffffff;
+    color: #2c3e50;
 }
 
-/* CARDS */
+h1, h2, h3 {
+    font-weight: 700;
+}
+
+/* =========================
+   CARDS
+========================= */
 .card {
     border: none;
     border-radius: 10px;
@@ -46,7 +91,6 @@ section {
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-/* CARD BOX */
 .card-box {
     padding: 25px;
     margin-bottom: 20px;
@@ -54,26 +98,29 @@ section {
     background: #ffffff;
 }
 
-/* BUTTONS */
+/* =========================
+   BUTTONS
+========================= */
 .btn {
     border-radius: 8px;
 }
 
-/* PRIMARY BUTTON (THEME) */
+/* THEME BUTTON */
 .btn-success {
-    background: #BBD6CE;
+    background: #6fa89b;
     border: none;
     padding: 10px 25px;
     border-radius: 6px;
-    color: #2c3e50;
-}
-
-.btn-success:hover {
-    background: #9fbfb5;
     color: #fff;
 }
 
-/* FORMS */
+.btn-success:hover {
+    background: #5a9085;
+}
+
+/* =========================
+   FORMS
+========================= */
 .form-control {
     border-radius: 8px;
     padding: 10px;
@@ -85,14 +132,15 @@ section {
     box-shadow: 0 0 5px rgba(187,214,206,0.5);
 }
 
-/* SERVICES */
+/* =========================
+   SERVICES
+========================= */
 .services {
     padding: 70px 0;
     background: #ffffff;
 }
 
 .services h2 {
-    font-weight: 700;
     margin-bottom: 40px;
     color: #2c3e50;
 }
@@ -123,7 +171,9 @@ section {
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-/* FOOTER */
+/* =========================
+   FOOTER
+========================= */
 footer {
     background: #2c3e50;
     color: #ffffff;
