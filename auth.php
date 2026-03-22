@@ -112,7 +112,9 @@ body {
 <form method="POST" id="loginForm">
     <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
     <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
-    <button name="login" class="btn btn-success w-100">Login</button>
+   <button type="submit" name="login" class="btn btn-success w-100">
+Login
+</button>
 </form>
 
 <!-- REGISTER FORM -->
@@ -120,7 +122,9 @@ body {
     <input type="text" name="name" class="form-control mb-2" placeholder="Full Name" required>
     <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
     <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
-    <button name="register" class="btn btn-primary w-100">Register</button>
+   <button type="submit" name="register" class="btn btn-primary w-100">
+Register
+</button>
 </form>
 
 <p class="text-center mt-3">

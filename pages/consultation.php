@@ -36,8 +36,6 @@ echo "Booking submitted successfully";
 
 <textarea name="message"></textarea>
 
-<button name="book">
-Book Consultation
-</button>
+<button class="btn btn-success w-100">Submit</button>
 
 </form>

@@ -24,6 +24,7 @@
     <a href="/mendnest/pages/testimonials.php" class="nav-link text-white d-inline">Testimonials</a>
     <a href="/mendnest/pages/appointment.php" class="nav-link text-white d-inline">Appointment</a>
     <a href="/mendnest/admin/login.php" class="nav-link text-white d-inline">Admin</a>
+    <a href="auth.php" class="btn btn-light">Get Started</a> 
 </div>
 
 </div>

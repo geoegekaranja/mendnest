@@ -2,47 +2,56 @@
 session_start();
 include '../database/connection.php';
 
-if(!isset($_SESSION['patient'])){
-    header("Location: ../login.php");
-    exit();
+$success = "";
+
+if(isset($_POST['submit'])){
+
+$patient_name = $_POST['patient_name'];
+$service = $_POST['service'];
+$date = $_POST['appointment_date'];
+$message = $_POST['message'];
+
+mysqli_query($conn,"INSERT INTO bookings (patient_name,service,appointment_date,message)
+VALUES ('$patient_name','$service','$date','$message')");
+
+$success = "Booking submitted successfully!";
 }
-
-$email = $_SESSION['patient'];
-
-$result = mysqli_query($conn,"SELECT * FROM bookings WHERE patient_name='$email'");
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-<title>My Bookings</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
+<?php include '../includes/header.php'; ?>
 
 <div class="container mt-5">
 
-<h3>My Bookings</h3>
+<h3 class="text-center mb-4">Book Appointment</h3>
 
-<table class="table table-bordered">
-<tr>
-    <th>Service</th>
-    <th>Date</th>
-    <th>Message</th>
-</tr>
-
-<?php while($row=mysqli_fetch_assoc($result)){ ?>
-<tr>
-    <td><?php echo $row['service']; ?></td>
-    <td><?php echo $row['appointment_date']; ?></td>
-    <td><?php echo $row['message']; ?></td>
-</tr>
+<?php if($success){ ?>
+<div class="alert alert-success text-center"><?php echo $success; ?></div>
 <?php } ?>
 
-</table>
+<div class="row justify-content-center">
+<div class="col-md-6">
+
+<form method="POST" class="card shadow">
+
+<input type="text" name="patient_name" class="form-control mb-3" placeholder="Full Name" required>
+
+<select name="service" class="form-control mb-3">
+<option>Home Nursing</option>
+<option>Elderly Care</option>
+<option>Medical Support</option>
+</select>
+
+<input type="date" name="appointment_date" class="form-control mb-3" required>
+
+<textarea name="message" class="form-control mb-3" placeholder="Message"></textarea>
+
+<button name="submit" class="btn btn-success">Book Now</button>
+
+</form>
+
+</div>
+</div>
 
 </div>
 
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>

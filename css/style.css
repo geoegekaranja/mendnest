@@ -1,27 +1,41 @@
 body {
     font-family: 'Segoe UI', sans-serif;
+    background: #31e1d5;
 }
 
+/* HERO */
 .hero {
-    background: linear-gradient(rgba(12, 234, 204, 0.6), rgba(0,0,0,0.6)),
+    height: 85vh;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
                 url('../assets/hero.jpg') center/cover no-repeat;
-    height: 80vh;
+    display: flex;
+    align-items: center;
 }
 
-.card {
-    border: none;
-    border-radius: 15px;
+.card-box {
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    transition: 0.3s;
 }
 
-/* NAVBAR */
+/* SECTIONS */
+section {
+    padding: 60px 0;
+}
 
-.navbar{
-box-shadow:0 2px 8px rgba(0,0,0,0.08);
+/* BUTTONS */
+.btn {
+    border-radius: 8px;
+}
+
+/* FORM */
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
 }
 
 .navbar-brand{
