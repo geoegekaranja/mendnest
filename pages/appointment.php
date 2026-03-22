@@ -1,7 +1,6 @@
 <?php
 
-include "includes/header.php";
-include "assets/connection.php";
+include '../database/connection.php';
 
 if($_SERVER["REQUEST_METHOD"]=="POST"){
 

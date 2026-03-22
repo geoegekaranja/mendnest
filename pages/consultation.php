@@ -1,5 +1,5 @@
 <?php
-include 'assets/connection.php';
+include '../database/connection.php';
 
 if(isset($_POST['book'])){
 

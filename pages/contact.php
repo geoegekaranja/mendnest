@@ -1,5 +1,5 @@
 <?php
-include '../assets/connection.php';
+include '../database/connection.php';
 ?>
 <div class="container py-5">
     <link rel="stylesheet" href="/mendnest/css/style.css">

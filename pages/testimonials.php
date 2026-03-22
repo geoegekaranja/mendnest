@@ -1,7 +1,5 @@
-<?php include '../includes/header.php'; ?>
-
 <?php
-include '../assets/connection.php';
+include '../database/connection.php';
 ?>
 
 <section class="py-5 bg-light">
