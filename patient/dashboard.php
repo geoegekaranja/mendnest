@@ -20,7 +20,7 @@ body {
 
 .sidebar {
     height: 100vh;
-    background: #198754;
+    background: #0e1310;
     color: white;
     padding: 20px;
 }
