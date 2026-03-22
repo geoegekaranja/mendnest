@@ -1,30 +1,57 @@
+/* GLOBAL */
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: #31e1d5;
+    background: #BBD6CE;
+    color: #333;
+}
+
+/* NAVBAR */
+.navbar {
+    background: #ffffff !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 22px;
+    color: #2c3e50 !important;
 }
 
 /* HERO */
 .hero {
     height: 85vh;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    background: linear-gradient(rgba(187,214,206,0.7), rgba(187,214,206,0.7)),
                 url('../assets/hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
-}
-
-.card-box {
-    padding: 25px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-}
-
-.card:hover {
-    transform: translateY(-5px);
+    color: #fff;
 }
 
 /* SECTIONS */
 section {
-    padding: 60px 0;
+    padding: 80px 0;
+    background: #ffffff;
+}
+
+/* CARDS */
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    background: #ffffff;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* CARD BOX */
+.card-box {
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background: #ffffff;
 }
 
 /* BUTTONS */
@@ -32,114 +59,86 @@ section {
     border-radius: 8px;
 }
 
-/* FORM */
+/* PRIMARY BUTTON (THEME) */
+.btn-success {
+    background: #BBD6CE;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 6px;
+    color: #2c3e50;
+}
+
+.btn-success:hover {
+    background: #9fbfb5;
+    color: #fff;
+}
+
+/* FORMS */
 .form-control {
     border-radius: 8px;
     padding: 10px;
+    border: 1px solid #ccc;
 }
 
-.navbar-brand{
-font-weight:700;
-font-size:22px;
-color:#111413 !important;
-}
-
-.hero {
-    height: 80vh;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-                url('assets/hero.jpg') center/cover no-repeat;
-}
-
-.card {
-    border-radius: 10px;
-    transition: 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* BUTTONS */
-
-.btn-success{
-background:#4deae5;
-border:none;
-padding:10px 25px;
-border-radius:6px;
-}
-
-.btn-success:hover{
-background:#157347;
+.form-control:focus {
+    border-color: #BBD6CE;
+    box-shadow: 0 0 5px rgba(187,214,206,0.5);
 }
 
 /* SERVICES */
-
-.services{
-padding:70px 0;
+.services {
+    padding: 70px 0;
+    background: #ffffff;
 }
 
-.services h2{
-font-weight:700;
-margin-bottom:40px;
+.services h2 {
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #2c3e50;
 }
 
-.services .card{
-border:none;
-border-radius:10px;
-transition:0.3s;
-box-shadow:0 4px 15px rgba(0,0,0,0.05);
+/* SERVICES PAGE */
+.services-page {
+    background: #BBD6CE;
+    padding: 80px 0;
 }
 
-.services .card:hover{
-transform:translateY(-5px);
-box-shadow:0 10px 25px rgba(0,0,0,0.1);
+.services-page h2 {
+    color: #2c3e50;
+    font-weight: 700;
 }
 
-/* SECTION SPACING */
+/* SERVICE CARD */
+.service-card {
+    background: #ffffff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    padding: 30px;
+    transition: 0.3s;
+}
 
-section{
-padding:80px 0;
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 /* FOOTER */
-
-footer{
-background:#1c1c1c;
-color:#fff;
+footer {
+    background: #2c3e50;
+    color: #ffffff;
+    padding: 40px 0;
 }
 
-footer h5{
-margin-bottom:15px;
+footer h5 {
+    margin-bottom: 15px;
 }
 
-footer a{
-color:#ccc;
-text-decoration:none;
+footer a {
+    color: #BBD6CE;
+    text-decoration: none;
 }
 
-footer a:hover{
-color:#fff;
-}
-.services-page{
-background:#f8f9fa;
-padding:80px 0;
-}
-
-.services-page h2{
-color:#31cdc0;
-font-weight:700;
-}
-
-.service-card{
-background:white;
-border:none;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.05);
-padding:30px;
-transition:0.3s;
-}
-
-.service-card:hover{
-transform:translateY(-5px);
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
+footer a:hover {
+    color: #ffffff;
 }
