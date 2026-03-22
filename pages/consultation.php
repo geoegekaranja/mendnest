@@ -13,29 +13,58 @@ VALUES('$name','$service','$date','$message')";
 
 mysqli_query($conn,$sql);
 
-echo "Booking submitted successfully";
-
+echo "<div class='alert alert-success'>Booking submitted successfully</div>";
 }
-
 ?>
+
 <link rel="stylesheet" href="/mendnest/css/style.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<form method="POST">
+<section class="consultation-section">
+<div class="container">
 
-<input type="text" name="name" placeholder="Name">
+<h2 class="mb-4 fw-bold">Care Request Form</h2>
 
-<select name="service">
+<form method="POST" class="consultation-form">
 
-<option>Medication</option>
-<option>Wound Care</option>
-<option>IV Hydration</option>
+<div class="row">
 
-</select>
+    <!-- NAME -->
+    <div class="col-md-6 mb-3">
+        <label>Full Name *</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
 
-<input type="date" name="date">
+    <!-- SERVICE -->
+    <div class="col-md-6 mb-3">
+        <label>Select Service *</label>
+        <select name="service" class="form-control" required>
+            <option value="">Choose Service</option>
+            <option>Medication</option>
+            <option>Wound Care</option>
+            <option>IV Hydration</option>
+        </select>
+    </div>
 
-<textarea name="message"></textarea>
+    <!-- DATE -->
+    <div class="col-md-6 mb-3">
+        <label>Preferred Date *</label>
+        <input type="date" name="date" class="form-control" required>
+    </div>
 
-<button class="btn btn-success w-100">Submit</button>
+    <!-- MESSAGE -->
+    <div class="col-md-12 mb-3">
+        <label>Additional Notes</label>
+        <textarea name="message" class="form-control" rows="4"></textarea>
+    </div>
+
+</div>
+
+<button type="submit" name="book" class="btn btn-success w-100">
+    Submit Request
+</button>
 
 </form>
+
+</div>
+</section>
