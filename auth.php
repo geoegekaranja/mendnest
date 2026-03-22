@@ -75,7 +75,7 @@ if(isset($_POST['login'])){
 <style>
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: #31e1d5;
+    background: #f9fcfc;
 }
 
 .auth-box {
