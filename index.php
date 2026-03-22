@@ -1,4 +1,6 @@
-<?php include '../includes/header.php'; ?>
+<?php 
+include '../includes/header.php';
+ ?>
 
 <!-- HERO SECTION -->
 <section class="hero d-flex align-items-center text-white text-center">
@@ -66,4 +68,4 @@ right at your doorstep with trained medical personnel.
     <a href="auth.php" class="btn btn-light mt-2">Book Now</a>
 </section>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
