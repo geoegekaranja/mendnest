@@ -68,4 +68,4 @@ right at your doorstep with trained medical personnel.
     <a href="auth.php" class="btn btn-light mt-2">Book Now</a>
 </section>
 
-<?php include '../includes/footer.php'; ?>
+<?php include ('includes/footer.php'); ?>
