@@ -41,7 +41,7 @@ section {
 .navbar-brand{
 font-weight:700;
 font-size:22px;
-color:#6ff2b5 !important;
+color:#111413 !important;
 }
 
 .hero {
@@ -62,7 +62,7 @@ color:#6ff2b5 !important;
 /* BUTTONS */
 
 .btn-success{
-background:#7ef5be;
+background:#4deae5;
 border:none;
 padding:10px 25px;
 border-radius:6px;
@@ -126,7 +126,7 @@ padding:80px 0;
 }
 
 .services-page h2{
-color:#198754;
+color:#31cdc0;
 font-weight:700;
 }
 

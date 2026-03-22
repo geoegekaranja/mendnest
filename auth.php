@@ -5,7 +5,7 @@ include 'database/connection.php';
 $error = "";
 $success = "";
 
-/* ================= REGISTER ================= */
+
 if(isset($_POST['register'])){
 
     $name = $_POST['name'];
@@ -22,7 +22,7 @@ if(isset($_POST['register'])){
         $error = "Email already exists!";
     } else {
 
-        // Insert new user (default role = patient)
+       
         $stmt = $conn->prepare("INSERT INTO patients (name,email,password,role) VALUES (?,?,?, 'patient')");
         $stmt->bind_param("sss", $name, $email, $password);
 
