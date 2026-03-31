@@ -3,202 +3,103 @@
 
 <!-- HERO -->
 <section id="home" class="hero d-flex align-items-center text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<div class="floating-card mx-auto" style="max-width:600px;">
-<h1 class="fw-bold">Personalized Home Nursing</h1>
-<p>Your trusted partner in home care services</p>
-
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
-    <span class="navbar-toggler-icon"></span>
-</button>
-</div>
-
-</div>
+    <div class="container">
+        <div class="floating-card mx-auto" style="max-width:600px;">
+            <h1 class="fw-bold">Personalized Home Nursing</h1>
+            <p>Your trusted partner in home care services</p>
+        </div>
+    </div>
 </section>
 
-<!-- ABOUT -->
-<section id="about" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<div class="floating-card mx-auto" style="max-width:700px;">
-<h2>About Us</h2>
-<p>
-We are a team of certified caregivers offering professional healthcare services at home.
-We support recovery and improve quality of life in the comfort of your home.
-</p>
-</div>
-
-</div>
+<!-- ABOUT (WHITE BACKGROUND + PARAGRAPH) -->
+<section id="about" class="py-5 bg-white text-center">
+    <div class="container">
+        <div class="mx-auto" style="max-width:700px;">
+            <h2 class="fw-bold mb-3">About Mend Nest</h2>
+            <p class="text-muted">
+                Mend Nest KE is dedicated to delivering high-quality home nursing services that prioritize comfort,
+                dignity, and personalized care. Our team of trained professionals ensures that patients receive
+                medical and non-medical support in a familiar home environment. We aim to enhance recovery,
+                promote independence, and improve overall well-being through compassionate and reliable care.
+            </p>
+        </div>
+    </div>
 </section>
 
-<!-- VISION & MISSION -->
-<section class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<div class="row justify-content-center">
-
-<div class="col-md-5 accent-card m-2">
-<h3>Our Vision</h3>
-<p>To make nursing services accessible to individuals & families.</p>
-</div>
-
-<div class="col-md-5 accent-card m-2">
-<h3>Our Mission</h3>
-<p>To provide quality, compassionate and personalized healthcare.</p>
-</div>
-
-</div>
-
-</div>
-</section>
-
-<!-- CORE VALUES -->
-<section id="values" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<h2>Core Values</h2>
-
-<div class="row justify-content-center">
-
-<div class="col-md-3 floating-card m-2">Adult Care</div>
-<div class="col-md-3 floating-card m-2">Holistic Health</div>
-<div class="col-md-3 floating-card m-2">Community</div>
-<div class="col-md-3 floating-card m-2">Accessibility</div>
-
-</div>
-
-</div>
+<!-- WHY MEND NEST (WHITE + PARAGRAPH) -->
+<section id="why" class="py-5 bg-white text-center">
+    <div class="container">
+        <div class="mx-auto" style="max-width:700px;">
+            <h2 class="fw-bold mb-3">Why Choose Mend Nest?</h2>
+            <p class="text-muted">
+                We provide a comprehensive range of home care services including elderly care, chronic illness
+                management, post-surgery recovery, and palliative care. Our approach focuses on personalized
+                treatment, safety, and continuous support. With professional caregivers and strong coordination
+                with healthcare providers, Mend Nest ensures that every client receives dependable and
+                compassionate care tailored to their needs.
+            </p>
+        </div>
+    </div>
 </section>
 
 <!-- SERVICES -->
-<section id="services" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
+<section id="services" class="py-5 text-center">
+    <div class="container">
+        <h2 class="fw-bold mb-4">Our Services</h2>
 
-<h2>Our Services</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-3">
+                <div class="floating-card p-3">
+                    <h5>Elderly Support</h5>
+                    <p>Daily assistance & care</p>
+                </div>
+            </div>
 
-<div class="row justify-content-center">
+            <div class="col-md-4 mb-3">
+                <div class="floating-card p-3">
+                    <h5>Post Surgery Care</h5>
+                    <p>Recovery support</p>
+                </div>
+            </div>
 
-<div class="col-md-4 floating-card m-2">
-<h5>Elderly Support</h5>
-<p>Daily assistance & care</p>
-</div>
-
-<div class="col-md-4 floating-card m-2">
-<h5>Post Surgery Care</h5>
-<p>Recovery support</p>
-</div>
-
-<div class="col-md-4 floating-card m-2">
-<h5>Chronic Illness Management</h5>
-<p>Continuous care</p>
-</div>
-
-<div class="col-md-4 floating-card m-2">
-<h5>Palliative Care</h5>
-<p>Comfort-focused care</p>
-</div>
-
-<div class="col-md-4 floating-card m-2">
-<h5>Home Safety Evaluation</h5>
-<p>Risk assessment</p>
-</div>
-
-<div class="col-md-4 floating-card m-2">
-<h5>Nursing Procedures</h5>
-<p>Professional treatments</p>
-</div>
-
-</div>
-
-</div>
-</section>
-
-<!-- CARE PACKAGES -->
-<section id="packages" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<h2>Care Packages</h2>
-
-<div class="row justify-content-center">
-
-<div class="col-md-4 accent-card m-2">
-<h4>Essential Care</h4>
-<p>Non-clinical support, daily living assistance</p>
-</div>
-
-<div class="col-md-4 accent-card m-2">
-<h4>Plus Care</h4>
-<p>Direct nursing care, monitoring & procedures</p>
-</div>
-
-<div class="col-md-4 accent-card m-2">
-<h4>Integrated Care</h4>
-<p>Multidisciplinary support & specialized care</p>
-</div>
-
-</div>
-
-</div>
-</section>
-
-<!-- WHY MEND NEST -->
-<section id="why" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
-
-<div class="floating-card mx-auto" style="max-width:700px;">
-<h2>Why Mend Nest?</h2>
-
-<ul class="text-start">
-<li>Elderly Care</li>
-<li>Chronic Illness Management</li>
-<li>Home Safety Evaluation</li>
-<li>Postnatal Care</li>
-<li>Palliative Care</li>
-<li>Nursing Procedures at Home</li>
-<li>Post Surgery Care</li>
-<li>Preventive Care</li>
-<li>Care Coordination with Healthcare Professionals</li>
-</ul>
-</div>
-
-</div>
+            <div class="col-md-4 mb-3">
+                <div class="floating-card p-3">
+                    <h5>Chronic Illness Management</h5>
+                    <p>Continuous care</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <!-- TESTIMONIALS -->
-<section id="testimonials" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
+<section id="testimonials" class="py-5 bg-light text-center">
+    <div class="container">
+        <h2 class="fw-bold mb-4">Testimonials</h2>
 
-<h2>Testimonials</h2>
+        <?php
+        if(isset($_POST['t_name'])){
+            $name = $_POST['t_name'];
+            $message = $_POST['t_message'];
 
-<?php
-if(isset($_POST['t_name'])){
-    $name = $_POST['t_name'];
-    $message = $_POST['t_message'];
+            mysqli_query($conn,"INSERT INTO testimonials(name,message) VALUES('$name','$message')");
+        }
+        ?>
 
-    mysqli_query($conn,"INSERT INTO testimonials(name,message) VALUES('$name','$message')");
-}
-?>
+        <form method="POST" class="mx-auto mb-4" style="max-width:500px;">
+            <input type="text" name="t_name" class="form-control mb-3" placeholder="Your Name" required>
+            <textarea name="t_message" class="form-control mb-3" placeholder="Your Experience"></textarea>
+            <button class="btn btn-success">Submit</button>
+        </form>
 
-<form method="POST" class="floating-card mx-auto" style="max-width:500px;">
+        <?php
+        $result = mysqli_query($conn,"SELECT * FROM testimonials");
 
-<input type="text" name="t_name" class="form-control mb-3" placeholder="Your Name" required>
-
-<textarea name="t_message" class="form-control mb-3" placeholder="Your Experience"></textarea>
-
-<button class="btn">Submit</button>
-
-</form>
-
-<?php
-$result = mysqli_query($conn,"SELECT * FROM testimonials");
-
-while($row = mysqli_fetch_assoc($result)){
-    echo "<p class='mt-3'>\"".$row['message']."\" - ".$row['name']."</p>";
-}
-?>
-
-</div>
+        while($row = mysqli_fetch_assoc($result)){
+            echo "<p class='mt-2'>\"".$row['message']."\" - ".$row['name']."</p>";
+        }
+              ?>
+    </div>
 </section>
 
 <!-- REQUEST CARE -->
