@@ -3,14 +3,14 @@
 
 <!-- HERO -->
 <section id="home" class="hero d-flex align-items-center text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <div class="floating-card mx-auto" style="max-width:600px;">
 <h1 class="fw-bold">Personalized Home Nursing</h1>
 <p>Your trusted partner in home care services</p>
 
-<button class="btn" data-bs-toggle="modal" data-bs-target="#careModal">
-Request Care
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+    <span class="navbar-toggler-icon"></span>
 </button>
 </div>
 
@@ -19,7 +19,7 @@ Request Care
 
 <!-- ABOUT -->
 <section id="about" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <div class="floating-card mx-auto" style="max-width:700px;">
 <h2>About Us</h2>
@@ -34,7 +34,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- VISION & MISSION -->
 <section class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <div class="row justify-content-center">
 
@@ -55,7 +55,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- CORE VALUES -->
 <section id="values" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <h2>Core Values</h2>
 
@@ -73,7 +73,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- SERVICES -->
 <section id="services" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <h2>Our Services</h2>
 
@@ -116,7 +116,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- CARE PACKAGES -->
 <section id="packages" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <h2>Care Packages</h2>
 
@@ -144,7 +144,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- WHY MEND NEST -->
 <section id="why" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <div class="floating-card mx-auto" style="max-width:700px;">
 <h2>Why Mend Nest?</h2>
@@ -167,7 +167,7 @@ We support recovery and improve quality of life in the comfort of your home.
 
 <!-- TESTIMONIALS -->
 <section id="testimonials" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <h2>Testimonials</h2>
 
@@ -203,7 +203,7 @@ while($row = mysqli_fetch_assoc($result)){
 
 <!-- REQUEST CARE -->
 <section id="request" class="section text-center">
-<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
 
 <h2>Request Care</h2>
 
