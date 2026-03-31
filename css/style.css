@@ -1,230 +1,111 @@
-/* =========================
-   GLOBAL
-========================= */
+/* GLOBAL */
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: #BBD6CE;
-    color: #2c3e50;
-    line-height: 1.6;
+    background: #ffffff;
+    color: #333;
 }
 
-/* =========================
-   NAVBAR
-========================= */
+/* NAVBAR */
 .navbar {
-    background: #6e7373 !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background: #BBD6CE;
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .navbar-brand {
-    font-weight: 700;
-    font-size: 22px;
-    color: #2c3e50 !important;
+    font-weight: bold;
+    font-size: 1.3rem;
 }
 
-/* NAV LINKS FIX */
-.navbar-nav .nav-link {
-    color: #37e3cf !important;
-    font-weight: 500;
-}
-
-.navbar-nav .nav-link:hover {
-    color: #6fa89b !important;
-}
-
-.navbar-nav .nav-link.active {
+.navbar a {
     color: #000 !important;
-    font-weight: 600;
 }
 
-/* =========================
-   HERO SECTION
-========================= */
+/* HERO */
 .hero {
-    background: linear-gradient(to right, #BBD6CE, #d9ebe6);
-    padding: 100px 0;
-    text-align: center;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                url('../assets/hero.jpg') center/cover no-repeat;
 }
 
 .hero h1 {
     font-size: 3rem;
-    font-weight: 700;
-    color: #070505;
 }
 
 .hero p {
     font-size: 1.2rem;
-    color: #0a0505;
 }
 
-/* =========================
-   SECTIONS
-========================= */
-section {
-    padding: 80px 0;
-     background: #BBD6CE;
-    color: #2c3e50;
+/* SECTIONS */
+.section {
+    padding: 90px 0;
 }
 
-h1, h2, h3 {
-    font-weight: 700;
+.section h2 {
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
-/* =========================
-   CARDS
-========================= */
+/* LIGHT SECTION */
+.bg-light {
+    background: #BBD6CE !important;
+}
+
+/* CARDS */
 .card {
     border: none;
-    border-radius: 10px;
+    border-radius: 15px;
+    padding: 25px;
     transition: 0.3s;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    background: #BBD6CE;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
 }
 
-.card-box {
-    padding: 25px;
+/* SERVICES GRID */
+.row .col-md-4 {
     margin-bottom: 20px;
-    border-radius: 10px;
-    background: #ffffff;
 }
 
-/* =========================
-   BUTTONS
-========================= */
-.btn {
-    border-radius: 8px;
-}
-
-/* THEME BUTTON */
+/* BUTTON */
 .btn-success {
-    background: #6fa89b;
+    background: #198754;
     border: none;
     padding: 10px 25px;
-    border-radius: 6px;
-    color: #fff;
+    border-radius: 30px;
 }
 
-.btn-success:hover {
-    background: #5a9085;
+/* CONTACT FORM */
+form input, form textarea {
+    border-radius: 10px !important;
 }
 
-/* =========================
-   FORMS
-========================= */
-.form-control {
-    border-radius: 8px;
-    padding: 10px;
-    border: 1px solid #ccc;
-}
-
-.form-control:focus {
-    border-color: #BBD6CE;
-    box-shadow: 0 0 5px rgba(187,214,206,0.5);
-}
-
-/* =========================
-   SERVICES
-========================= */
-.services {
-    padding: 70px 0;
-    background: #ffffff;
-}
-
-.services h2 {
-    margin-bottom: 40px;
-    color: #2c3e50;
-}
-
-/* SERVICES PAGE */
-.services-page {
-    background: #BBD6CE;
-    padding: 80px 0;
-}
-
-.services-page h2 {
-    color: #2c3e50;
-    font-weight: 700;
-}
-
-/* SERVICE CARD */
-.service-card {
-    background: #ffffff;
-    border: none;
+/* TESTIMONIALS */
+#testimonials p {
+    background: #f9f9f9;
+    padding: 15px;
     border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-    padding: 30px;
-    transition: 0.3s;
+    margin: 10px 0;
 }
 
-.service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+/* SMOOTH SCROLL */
+html {
+    scroll-behavior: smooth;
 }
-/* TESTIMONIAL SECTION */
-.testimonial-section {
-    background: #BBD6CE;
-    padding: 60px 0;
-}
-
-/* TESTIMONIAL CARDS */
-.testimonial-card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-    transition: 0.3s;
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-/* FORM */
-.testimonial-form-wrapper {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-}
-
-.testimonial-form-wrapper label {
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.testimonial-form-wrapper .form-control {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.testimonial-form-wrapper .form-control:focus {
-    border-color: #6fa89b;
-    box-shadow: 0 0 5px rgba(187,214,206,0.5);
-}
-
-/* =========================
-   FOOTER
-========================= */
-footer {
-    background: #2c3e50;
-    color: #ffffff;
-    padding: 40px 0;
-}
-
-footer h5 {
-    margin-bottom: 15px;
-}
-
-footer a {
-    color: #BBD6CE;
-    text-decoration: none;
-}
-
-footer a:hover {
-    color: #ffffff;
+.whatsapp-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #25D366;
+    color: white;
+    font-size: 24px;
+    padding: 15px;
+    border-radius: 50%;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
