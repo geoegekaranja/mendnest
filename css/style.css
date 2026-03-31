@@ -2,7 +2,7 @@
 body {
     font-family: 'Segoe UI', sans-serif;
     background: #ffffff;
-    color: #333;
+    color: #ffffff;
 }
 
 /* NAVBAR */
@@ -108,4 +108,31 @@ html {
     text-align: center;
     z-index: 1000;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+/* PURE WHITE SECTION */
+.white-section {
+    background: #ffffff;
+}
+
+/* FLOATING BOX STYLE */
+.request-box,
+.card {
+    background: #BBD6CE;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    max-width: 500px;
+}
+
+/* GENERAL FLOATING CARDS */
+.floating-card {
+    background: #BBD6CE;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+    transition: 0.3s;
+}
+
+.floating-card:hover {
+    transform: translateY(-5px);
 }

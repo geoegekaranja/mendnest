@@ -12,18 +12,16 @@
 </a>
 <body>
 
-<nav class="navbar navbar-expand-lg fixed-top">
-<div class="container">
-
-<a class="navbar-brand" href="#">Mend Nest KE</a>
-
 <ul class="navbar-nav ms-auto">
+
 <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
 <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
 <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
 <li class="nav-item"><a class="nav-link" href="#packages">Packages</a></li>
-<li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-</ul>
+<li class="nav-item"><a class="nav-link" href="#request">Request Care</a></li>
 
-</div>
-</nav>
+<li class="nav-item">
+<a class="nav-link" href="blog.php">Blog</a>
+</li>
+
+</ul>

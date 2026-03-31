@@ -14,7 +14,7 @@ Request Care
 </section>
 
 <!-- ABOUT -->
-<section id="about" class="section">
+<section id="about" class="section white-section">
 <div class="container">
 <h2>About Us</h2>
 <p>
@@ -42,7 +42,7 @@ We support recovery and improve quality of life in the comfort of your home.
 </section>
 
 <!-- CORE VALUES -->
-<section class="section">
+<section id="Values" class="section white-section">
 <div class="container text-center">
 <h2>Core Values</h2>
 <div class="row">
@@ -57,7 +57,8 @@ We support recovery and improve quality of life in the comfort of your home.
 </section>
 
 <!-- SERVICES -->
-<section id="services" class="section bg-light">
+<section id="SERVIVES" class="section white-section">
+
 <div class="container">
 <h2>Our Services</h2>
 
@@ -98,7 +99,7 @@ We support recovery and improve quality of life in the comfort of your home.
 </section>
 
 <!-- CARE PACKAGES -->
-<section id="packages" class="section">
+<section id="PACKAGES" class="section white-section">
 <div class="container text-center">
 <h2>Care Packages</h2>
 
@@ -124,7 +125,7 @@ We support recovery and improve quality of life in the comfort of your home.
 </section>
 
 <!-- WHY MEND NEST -->
-<section class="section bg-light">
+<section id="WHY MENDNEST" class="section white-section">
 <div class="container">
 <h2>Why Mend Nest?</h2>
 
@@ -166,17 +167,44 @@ while($row = mysqli_fetch_assoc($result)){
 </div>
 </section>
 
-<!-- CONTACT -->
-<section id="contact" class="section bg-light">
-<div class="container">
-<h2>Contact Us</h2>
+<section id="request" class="section white-section">
+<div class="container text-center">
+
+<h2 class="mb-4">Request Care</h2>
+<p class="mb-5">Fill in your details and we will get back to you</p>
+
+<div class="request-box mx-auto">
 
 <form method="POST">
-<input type="text" name="name" class="form-control mb-3" placeholder="Your Name" required>
-<input type="email" name="email" class="form-control mb-3" placeholder="Email">
-<textarea name="message" class="form-control mb-3" placeholder="Message"></textarea>
-<button class="btn btn-success">Send</button>
+
+<input type="text" name="name" class="form-control mb-3" placeholder="Full Name" required>
+
+<input type="tel" name="phone" class="form-control mb-3" placeholder="Phone Number" required>
+
+<select name="service" class="form-control mb-3">
+    <option>Select Service</option>
+    <option>Home Nursing</option>
+    <option>Elderly Care</option>
+    <option>Post Surgery Care</option>
+    <option>Postnatal Care</option>
+    <option>Chronic Illness Management</option>
+    <option>Palliative Care</option>
+    <option>Preventive Care</option>
+    <option>Home Safety Evaluation</option>
+    <option>Nursing Procedures at Home</option>
+    <option>Care Coordination</option>
+</select>
+
+<textarea name="message" class="form-control mb-3" placeholder="Describe your needs"></textarea>
+
+<button class="btn">Submit Request</button>
+
 </form>
+
+</div>
+
+</div>
+</section>
 
 <p class="mt-3">
 📞 +254 769 604 111 <br>
