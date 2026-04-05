@@ -1,149 +1,121 @@
 <?php include 'includes/header.php'; ?>
-<?php include 'database/connection.php'; ?>
 
 <!-- HERO -->
-<section id="home" class="hero d-flex align-items-center text-center">
-    <div class="container">
-        <div class="floating-card mx-auto" style="max-width:600px;">
-            <h1 class="fw-bold">Personalized Home Nursing</h1>
-            <p>Your trusted partner in home care services</p>
-        </div>
+<section class="hero d-flex align-items-center text-center text-white">
+  <div class="container">
+    <div class="mx-auto" style="max-width:700px;">
+      <p class="small text-uppercase mb-2">Home Health</p>
+      <h1 class="fw-bold display-5">Personalized Home Nursing</h1>
+      <hr class="mx-auto" style="width:60px;">
+      <p class="mt-3">
+        Welcome to Mend Nest KE, your trusted provider for exclusive home-based nursing services.
+        We focus on illness prevention, recovery support and the enhancement of your overall health and well-being.
+      </p>
     </div>
+  </div>
 </section>
 
-<!-- ABOUT (WHITE BACKGROUND + PARAGRAPH) -->
-<section id="about" class="py-5 bg-white text-center">
-    <div class="container">
-        <div class="mx-auto" style="max-width:700px;">
-            <h2 class="fw-bold mb-3">About Mend Nest</h2>
-            <p class="text-muted">
-                Mend Nest KE is dedicated to delivering high-quality home nursing services that prioritize comfort,
-                dignity, and personalized care. Our team of trained professionals ensures that patients receive
-                medical and non-medical support in a familiar home environment. We aim to enhance recovery,
-                promote independence, and improve overall well-being through compassionate and reliable care.
-            </p>
-        </div>
+<!-- ABOUT -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-5">ABOUT US</h2>
+
+    <div class="row align-items-center">
+
+      <div class="col-md-5 mb-4">
+        <img src="assets/nurse.jpg" class="img-fluid rounded shadow">
+      </div>
+
+      <div class="col-md-7">
+        <p>
+          We are a team of certified nurses and nurse assistants, fully equipped and prepared to deliver quality nursing services.
+          We offer dependable, professional care for individuals who may not be able to access hospital-based services or prefer recovery at home.
+        </p>
+
+        <p>
+          We serve post-surgical patients, palliative care clients, individuals with chronic illnesses,
+          and families seeking preventive and wellness healthcare support.
+        </p>
+      </div>
+
     </div>
+  </div>
 </section>
 
-<!-- WHY MEND NEST (WHITE + PARAGRAPH) -->
-<section id="why" class="py-5 bg-white text-center">
-    <div class="container">
-        <div class="mx-auto" style="max-width:700px;">
-            <h2 class="fw-bold mb-3">Why Choose Mend Nest?</h2>
-            <p class="text-muted">
-                We provide a comprehensive range of home care services including elderly care, chronic illness
-                management, post-surgery recovery, and palliative care. Our approach focuses on personalized
-                treatment, safety, and continuous support. With professional caregivers and strong coordination
-                with healthcare providers, Mend Nest ensures that every client receives dependable and
-                compassionate care tailored to their needs.
-            </p>
-        </div>
+<!-- WHY -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-5">WHY MEND NEST?</h2>
+
+    <div class="mx-auto" style="max-width:700px;">
+      <ul class="premium-list">
+        <li>Care tailored to each client’s needs & preferences</li>
+        <li>More time per patient for thorough assessments</li>
+        <li>Education & support for patients and families</li>
+        <li>Continuity of care across different environments</li>
+      </ul>
     </div>
+  </div>
 </section>
 
-<!-- SERVICES -->
+<!-- SERVICES (FLOATING CARDS) -->
 <section id="services" class="py-5 text-center">
-    <div class="container">
-        <h2 class="fw-bold mb-4">Our Services</h2>
+<div class="container">
 
-        <div class="row justify-content-center">
-            <div class="col-md-4 mb-3">
-                <div class="floating-card p-3">
-                    <h5>Elderly Support</h5>
-                    <p>Daily assistance & care</p>
-                </div>
-            </div>
+<h2 class="fw-bold mb-5">Our Services</h2>
 
-            <div class="col-md-4 mb-3">
-                <div class="floating-card p-3">
-                    <h5>Post Surgery Care</h5>
-                    <p>Recovery support</p>
-                </div>
-            </div>
+<div class="row g-4">
 
-            <div class="col-md-4 mb-3">
-                <div class="floating-card p-3">
-                    <h5>Chronic Illness Management</h5>
-                    <p>Continuous care</p>
-                </div>
-            </div>
-        </div>
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-person-heart service-icon"></i>
+        <h5>Elderly Care</h5>
+        <p>Professional assistance for daily living, mobility and companionship.</p>
     </div>
-</section>
+</div>
 
-<!-- TESTIMONIALS -->
-<section id="testimonials" class="py-5 bg-light text-center">
-    <div class="container">
-        <h2 class="fw-bold mb-4">Testimonials</h2>
-
-        <?php
-        if(isset($_POST['t_name'])){
-            $name = $_POST['t_name'];
-            $message = $_POST['t_message'];
-
-            mysqli_query($conn,"INSERT INTO testimonials(name,message) VALUES('$name','$message')");
-        }
-        ?>
-
-        <form method="POST" class="mx-auto mb-4" style="max-width:500px;">
-            <input type="text" name="t_name" class="form-control mb-3" placeholder="Your Name" required>
-            <textarea name="t_message" class="form-control mb-3" placeholder="Your Experience"></textarea>
-            <button class="btn btn-success">Submit</button>
-        </form>
-
-        <?php
-        $result = mysqli_query($conn,"SELECT * FROM testimonials");
-
-        while($row = mysqli_fetch_assoc($result)){
-            echo "<p class='mt-2'>\"".$row['message']."\" - ".$row['name']."</p>";
-        }
-              ?>
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-hospital service-icon"></i>
+        <h5>Post Surgery Care</h5>
+        <p>Recovery support including wound care and monitoring.</p>
     </div>
-</section>
+</div>
 
-<!-- REQUEST CARE -->
-<section id="request" class="section text-center">
-<div class="collapse navbar-collapse" id="mainNavbar">
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-heart-pulse service-icon"></i>
+        <h5>Chronic Illness</h5>
+        <p>Continuous care for long-term conditions like diabetes & hypertension.</p>
+    </div>
+</div>
 
-<h2>Request Care</h2>
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-activity service-icon"></i>
+        <h5>Palliative Care</h5>
+        <p>Comfort-focused care for serious and life-limiting conditions.</p>
+    </div>
+</div>
 
-<div class="request-box mx-auto">
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-shield-check service-icon"></i>
+        <h5>Home Safety</h5>
+        <p>Identify risks and improve safety in your home.</p>
+    </div>
+</div>
 
-<form method="POST">
-
-<input type="text" name="name" class="form-control mb-3" placeholder="Full Name" required>
-
-<input type="tel" name="phone" class="form-control mb-3" placeholder="Phone Number" required>
-
-<select name="service" class="form-control mb-3">
-<option>Select Service</option>
-<option>Home Nursing</option>
-<option>Elderly Care</option>
-<option>Post Surgery Care</option>
-<option>Postnatal Care</option>
-<option>Chronic Illness Management</option>
-<option>Palliative Care</option>
-<option>Preventive Care</option>
-<option>Home Safety Evaluation</option>
-<option>Nursing Procedures at Home</option>
-<option>Care Coordination</option>
-</select>
-
-<textarea name="message" class="form-control mb-3" placeholder="Describe your needs"></textarea>
-
-<button class="btn">Submit Request</button>
-
-</form>
+<div class="col-md-4">
+    <div class="service-card">
+        <i class="bi bi-clipboard2-pulse service-icon"></i>
+        <h5>Nursing Procedures</h5>
+        <p>Professional clinical services delivered at home.</p>
+    </div>
+</div>
 
 </div>
 
-<p class="mt-4">
-📞 +254 769 604 111 <br>
-📧 info@mendnest.co.ke
-</p>
-
 </div>
 </section>
-
 <?php include 'includes/footer.php'; ?>

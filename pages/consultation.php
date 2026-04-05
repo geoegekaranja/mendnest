@@ -1,70 +1,42 @@
-<?php
-include '../database/connection.php';
+<?php include 'includes/header.php'; ?>
 
-if(isset($_POST['book'])){
-
-$name = $_POST['name'];
-$service = $_POST['service'];
-$date = $_POST['date'];
-$message = $_POST['message'];
-
-$sql="INSERT INTO bookings(patient_name,service,appointment_date,message)
-VALUES('$name','$service','$date','$message')";
-
-mysqli_query($conn,$sql);
-
-echo "<div class='alert alert-success'>Booking submitted successfully</div>";
-}
-?>
-
-<link rel="stylesheet" href="/mendnest/css/style.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<section class="consultation-section">
+<section class="py-5 bg-light">
 <div class="container">
+<h2 class="fw-bold mb-4">Care Request Form</h2>
 
-<h2 class="mb-4 fw-bold">Care Request Form</h2>
-
-<form method="POST" class="consultation-form">
+<form class="bg-white p-4 rounded shadow">
 
 <div class="row">
-
-    <!-- NAME -->
-    <div class="col-md-6 mb-3">
-        <label>Full Name *</label>
-        <input type="text" name="name" class="form-control" required>
-    </div>
-
-    <!-- SERVICE -->
-    <div class="col-md-6 mb-3">
-        <label>Select Service *</label>
-        <select name="service" class="form-control" required>
-            <option value="">Choose Service</option>
-            <option>Medication</option>
-            <option>Wound Care</option>
-            <option>IV Hydration</option>
-        </select>
-    </div>
-
-    <!-- DATE -->
-    <div class="col-md-6 mb-3">
-        <label>Preferred Date *</label>
-        <input type="date" name="date" class="form-control" required>
-    </div>
-
-    <!-- MESSAGE -->
-    <div class="col-md-12 mb-3">
-        <label>Additional Notes</label>
-        <textarea name="message" class="form-control" rows="4"></textarea>
-    </div>
-
+<div class="col-md-6 mb-3">
+<input type="text" class="form-control" placeholder="First Name" required>
 </div>
 
-<button type="submit" name="book" class="btn btn-success w-100">
-    Submit Request
-</button>
+<div class="col-md-6 mb-3">
+<input type="text" class="form-control" placeholder="Last Name" required>
+</div>
+</div>
+
+<input type="email" class="form-control mb-3" placeholder="Email Address">
+
+<input type="tel" class="form-control mb-3" placeholder="+254 712 345678">
+
+<input type="text" class="form-control mb-3" placeholder="Street Address">
+
+<select class="form-control mb-3">
+<option>Select Care Package</option>
+<option>Essential Care</option>
+<option>Plus Care</option>
+<option>Integrated Care</option>
+</select>
+
+<input type="date" class="form-control mb-3">
+
+<textarea class="form-control mb-3" placeholder="Additional Notes"></textarea>
+
+<button class="btn btn-success w-100">Submit</button>
 
 </form>
-
 </div>
 </section>
+
+<?php include 'includes/footer.php'; ?>
