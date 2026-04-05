@@ -1,30 +1,9 @@
-<?php 
-session_start();
-include '../database/connection.php';
 
-/* PROTECT PAGE */
-if(!isset($_SESSION['admin'])){
-    header("Location: ../index.php");
-    exit();
-}
 
-/* SUBMIT BLOG */
-if(isset($_POST['submit'])){
-
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-
-    $image = $_FILES['image']['name'];
-    $tmp = $_FILES['image']['tmp_name'];
-
-    move_uploaded_file($tmp, "../uploads/".$image);
-
-    mysqli_query($conn,"INSERT INTO blogs(title,content,image)
-    VALUES('$title','$content','$image')");
-}
-?>
-
-<?php include '../includes/header.php'; ?>
+<?php
+ include '../includes/header.php'; 
+ include '../database/connection.php';
+ ?>
 
 <section class="py-5">
 <div class="container">
