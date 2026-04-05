@@ -46,6 +46,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/mendnest/pages/contact.php">Contact</a>
+          <li class="nav-item"> href="/mendnest/pages/blog.php">Blog</a>
         </li>
       </ul>
     </div>

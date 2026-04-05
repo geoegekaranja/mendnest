@@ -78,7 +78,7 @@ h2 {
 }
 
 .package-card.active {
-    background: #198754;
+    background: #BBD6CE;
     color: #fff;
 }
 
@@ -179,6 +179,30 @@ h2 {
 }
 
 .submit-btn:hover {
-    background: #198754;
+    background: #BBD6CE;
     color: #fff;
+}
+/* BLOG CARD */
+.blog-card {
+    background: #BBD6CE;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.blog-card img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.blog-card:hover {
+    transform: translateY(-8px);
+}
+
+/* BLOG FORM */
+.blog-form {
+    max-width: 600px;
 }
