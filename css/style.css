@@ -93,3 +93,55 @@ h2 {
         padding: 20px;
     }
 }
+/* SECTION */
+.care-section {
+    background: #eef3f2;
+    padding: 80px 20px;
+}
+
+/* FORM */
+.care-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+/* LABELS */
+.care-form label {
+    font-weight: 500;
+    margin-top: 15px;
+    display: block;
+    font-size: 14px;
+}
+
+/* INPUTS */
+.care-form input,
+.care-form select,
+.care-form textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* TEXTAREA */
+.care-form textarea {
+    height: 120px;
+}
+
+/* BUTTON */
+.submit-btn {
+    background: #b7d8cd;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.submit-btn:hover {
+    background: #198754;
+    color: #fff;
+}
