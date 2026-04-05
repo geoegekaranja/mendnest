@@ -182,6 +182,123 @@ h2 {
     background: #BBD6CE;
     color: #fff;
 }
+/* =========================
+   MENDNEST SERVICES PAGE
+========================= */
+
+/* PAGE BACKGROUND */
+.services-section {
+    background: linear-gradient(135deg, #BBD6CE, #e8f5f1);
+    padding: 90px 0;
+}
+
+/* HERO */
+.services-hero {
+    background: #ffffff;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.services-hero h1 {
+    font-weight: 700;
+    color: #222;
+}
+
+.services-hero p {
+    color: #666;
+    max-width: 600px;
+    margin: auto;
+}
+
+/* SERVICE CARD */
+.service-card {
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+/* ICON */
+.service-card i {
+    font-size: 40px;
+    color: #198754;
+    margin-bottom: 15px;
+}
+
+/* TITLE */
+.service-card h5 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* TEXT */
+.service-card p {
+    color: #555;
+    font-size: 14px;
+}
+
+/* HOVER EFFECT */
+.service-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* WHY SECTION */
+.services-why {
+    background: #ffffff;
+    padding: 80px 0;
+}
+
+/* LIST */
+.services-why ul {
+    list-style: none;
+    padding: 0;
+}
+
+.services-why li {
+    margin-bottom: 15px;
+    padding-left: 30px;
+    position: relative;
+}
+
+.services-why li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: #198754;
+    font-weight: bold;
+}
+
+/* CTA */
+.services-cta {
+    background: linear-gradient(135deg, #198754, #157347);
+    padding: 80px 20px;
+    text-align: center;
+    color: white;
+}
+
+/* BUTTON */
+.services-cta .btn {
+    border-radius: 30px;
+    padding: 12px 25px;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+
+    .services-hero {
+        padding: 60px 20px;
+    }
+
+    .service-card {
+        padding: 20px;
+    }
+
+}
 /* BLOG CARD */
 .blog-card {
     background: #BBD6CE;

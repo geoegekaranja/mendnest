@@ -1,4 +1,4 @@
-<?php include '..includes/header.php'; ?>
+<?php include '../includes/header.php'; ?>
 
 <!-- HERO -->
 <section class="hero-clean text-center">
