@@ -105,6 +105,43 @@ h2 {
     padding: 30px;
     border-radius: 10px;
 }
+/* INFO CARDS (VISION, MISSION, VALUES) */
+.info-card {
+    background: #BBD6CE;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+/* SMALL CARDS */
+.small-card {
+    padding: 20px;
+    font-weight: 500;
+}
+
+/* HOVER EFFECT */
+.info-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* TEXT */
+.info-card h4 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.info-card p {
+    color: #333;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .info-card {
+        padding: 20px;
+    }
+}
 
 /* LABELS */
 .care-form label {

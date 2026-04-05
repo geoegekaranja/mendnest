@@ -49,19 +49,29 @@ We serve post-surgical patients, palliative care clients, individuals with chron
 </section>
 
 <!-- VISION & MISSION -->
-<section class="py-5 bg-light text-center">
+<section class="py-5 text-center">
 <div class="container">
 
-<div class="row">
+<h2 class="fw-bold mb-5">Our Vision & Mission</h2>
 
-<div class="col-md-6">
-<h3>Our Vision</h3>
-<p>To make nursing services accessible and available to all individuals and families.</p>
+<div class="row g-4 justify-content-center">
+
+<div class="col-md-5">
+    <div class="info-card">
+        <h4>Our Vision</h4>
+        <p>
+            To make nursing services accessible and available to all individuals and families.
+        </p>
+    </div>
 </div>
 
-<div class="col-md-6">
-<h3>Our Mission</h3>
-<p>To provide personalized, high-quality healthcare that enhances recovery and overall well-being.</p>
+<div class="col-md-5">
+    <div class="info-card">
+        <h4>Our Mission</h4>
+        <p>
+            To provide personalized, high-quality healthcare that enhances recovery and overall well-being.
+        </p>
+    </div>
 </div>
 
 </div>
@@ -70,18 +80,32 @@ We serve post-surgical patients, palliative care clients, individuals with chron
 </section>
 
 <!-- CORE VALUES -->
-<section class="py-5 bg-white text-center">
+<section class="py-5 text-center">
 <div class="container">
 
-<h2 class="fw-bold mb-4">Core Values</h2>
+<h2 class="fw-bold mb-5">Core Values</h2>
 
-<div class="row">
+<div class="row g-4 justify-content-center">
 
-<div class="col-md-3">Quality Care</div>
-<div class="col-md-3">Holistic Health</div>
-<div class="col-md-3">Accessibility</div>
-<div class="col-md-3">Collaboration</div>
-<div class="col-md-3">Comfort</div>
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Quality Care</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Holistic Health</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Accessibility</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Collaboration</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Comfort</div>
+</div>
 
 </div>
 
