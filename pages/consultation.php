@@ -1,42 +1,62 @@
-<?php include 'includes/header.php'; ?>
 
-<section class="py-5 bg-light">
+<?php 
+include '../includes/header.php';
+include '../database/connection.php';
+?>
+
+
+<section class="request-section">
 <div class="container">
-<h2 class="fw-bold mb-4">Care Request Form</h2>
 
-<form class="bg-white p-4 rounded shadow">
+<div class="request-card mx-auto">
 
+<h2 class="fw-bold mb-4 text-center">Care Request Form</h2>
+
+<form method="POST">
+
+<!-- NAMES -->
 <div class="row">
 <div class="col-md-6 mb-3">
-<input type="text" class="form-control" placeholder="First Name" required>
+<input type="text" name="fname" class="form-control" placeholder="First Name" required>
 </div>
 
 <div class="col-md-6 mb-3">
-<input type="text" class="form-control" placeholder="Last Name" required>
+<input type="text" name="lname" class="form-control" placeholder="Last Name" required>
 </div>
 </div>
 
-<input type="email" class="form-control mb-3" placeholder="Email Address">
+<!-- EMAIL -->
+<input type="email" name="email" class="form-control mb-3" placeholder="Email Address" required>
 
-<input type="tel" class="form-control mb-3" placeholder="+254 712 345678">
+<!-- PHONE -->
+<input type="tel" name="phone" class="form-control mb-3" placeholder="+254 712 345678" required>
 
-<input type="text" class="form-control mb-3" placeholder="Street Address">
+<!-- ADDRESS -->
+<input type="text" name="address" class="form-control mb-3" placeholder="Street Address">
 
-<select class="form-control mb-3">
-<option>Select Care Package</option>
+<!-- PACKAGE -->
+<select name="package" class="form-control mb-3">
+<option value="">Select Care Package</option>
 <option>Essential Care</option>
 <option>Plus Care</option>
 <option>Integrated Care</option>
 </select>
 
-<input type="date" class="form-control mb-3">
+<!-- DATE -->
+<input type="date" name="date" class="form-control mb-3">
 
-<textarea class="form-control mb-3" placeholder="Additional Notes"></textarea>
+<!-- NOTES -->
+<textarea name="notes" class="form-control mb-3" placeholder="Additional Notes"></textarea>
 
-<button class="btn btn-success w-100">Submit</button>
+<!-- BUTTON -->
+<button name="submit" class="btn btn-success w-100">
+Submit Request
+</button>
 
 </form>
+
+</div>
 </div>
 </section>
 
-<?php include 'includes/footer.php'; ?>
+ include '../includes/footer.php'; ?>
