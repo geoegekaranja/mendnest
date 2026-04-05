@@ -26,54 +26,28 @@
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm sticky-top" style="background:#198754;">
-    <div class="container">
-
-        <!-- LOGO -->
-        <a class="navbar-brand fw-bold" href="/mendnest/index.php">
-            Mend Nest KE
-        </a>
-
-        <!-- TOGGLE BUTTON (MOBILE) -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- MENU -->
-        <div class="collapse navbar-collapse" id="mainNavbar">
-            <ul class="navbar-nav ms-auto align-items-lg-center">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/index.php">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/about.php">About</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/services.php">Services</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/packages.php">Packages</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/blog.php">Blog</a>
-                </li>
-
-                <!-- CTA BUTTON -->
-                <li class="nav-item ms-lg-3">
-                    <a class="btn btn-light fw-semibold px-4" href="/mendnest/consultation.php">
-                        Request Care
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#">Mend Nest KE</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="/mendnest/index.php">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/mendnest/pages/consultation.php">Consultation</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/mendnest/pages/services.php">Services</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/mendnest/pages/contact.php">Contact</a>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
-<!-- =============== END NAVBAR =============== -->
