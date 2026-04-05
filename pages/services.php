@@ -1,4 +1,4 @@
-<?php include 'includes/header.php'; ?>
+<?php include '..includes/header.php'; ?>
 
 <!-- HERO -->
 <section class="hero-clean text-center">
@@ -107,4 +107,4 @@ Request Care
 </div>
 </section>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
