@@ -1,104 +1,42 @@
 <?php
-session_start();
-include '../database/connection.php';
+require_once '../includes/auth.php';
+require_once '../database/connection.php';
+$admin = require_role('admin');
 
-if(!isset($_SESSION['admin'])){
-    header("Location: login.php");
-    exit();
+// COUNT(*) is far faster than loading every row just to count them
+function safe_count(mysqli $conn, string $sql): int {
+    try {
+        return (int)$conn->query($sql)->fetch_row()[0];
+    } catch (mysqli_sql_exception $ex) {
+        error_log('Dashboard count failed: ' . $ex->getMessage());
+        return 0;
+    }
 }
 
-// COUNTS
-$bookings = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM bookings"));
-$patients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM patients"));
-$testimonials = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM testimonials"));
+$cards = [
+    ['Total Bookings',        safe_count($conn, "SELECT COUNT(*) FROM bookings"),                           'bookings.php'],
+    ['Pending Bookings',      safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE status = 'Pending'"),  'bookings.php'],
+    ['Consultation Requests', safe_count($conn, "SELECT COUNT(*) FROM consultations"),                      'consultations.php'],
+    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients WHERE role = 'patient'"),    null],
+    ['Testimonials',          safe_count($conn, "SELECT COUNT(*) FROM testimonials"),                       'testimonials.php'],
+    ['Awaiting Approval',     safe_count($conn, "SELECT COUNT(*) FROM testimonials WHERE is_approved = 0"), 'testimonials.php'],
+];
+
+$pageTitle = 'Admin Dashboard';
+$active    = 'dashboard';
+include '../includes/admin_header.php';
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-<title>Admin Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body {
-    background: #f4f6f9;
-}
-
-.sidebar {
-    height: 100vh;
-    background: #343a40;
-    color: white;
-    padding: 20px;
-}
-
-.sidebar a {
-    color: white;
-    display: block;
-    margin: 10px 0;
-    text-decoration: none;
-}
-
-.card-box {
-    border-radius: 10px;
-    padding: 20px;
-    background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="container-fluid">
 <div class="row">
-
-    <!-- SIDEBAR -->
-    <div class="col-md-2 sidebar">
-        <h4>Admin Panel</h4>
-        <hr>
-
-        <a href="#">Dashboard</a>
-        <a href="bookings.php">Bookings</a>
-        <a href="testimonials.php">Testimonials</a>
-        <a href="blog.php">Blog</a>
-        <a href="../logout.php">Logout</a>
-    </div>
-
-    <!-- MAIN -->
-    <div class="col-md-10 p-4">
-
-        <h3>Admin Dashboard</h3>
-
-        <div class="row mt-4">
-
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <h5>Total Bookings</h5>
-                    <h2><?php echo $bookings; ?></h2>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <h5>Total Patients</h5>
-                    <h2><?php echo $patients; ?></h2>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <h5>Testimonials</h5>
-                    <h2><?php echo $testimonials; ?></h2>
-                </div>
-            </div>
-
+<?php foreach ($cards as [$label, $count, $link]): ?>
+    <div class="col-md-4 mb-4">
+        <div class="card-box text-center">
+            <h5><?= h($label) ?></h5>
+            <h2><?= (int)$count ?></h2>
+            <?php if ($link): ?><a href="<?= h($link) ?>" class="small">View</a><?php endif; ?>
         </div>
-
     </div>
-
+<?php endforeach; ?>
 </div>
-</div>
 
-</body>
-</html>
+<?php include '../includes/admin_footer.php'; ?>

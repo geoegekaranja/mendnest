@@ -1,159 +1,126 @@
 <?php
-session_start();
-include 'database/connection.php';
+/* Shared authentication + helper functions.
+   Include this FIRST on every page, before any output is sent. */
 
-$error = "";
-$success = "";
-
-
-if(isset($_POST['register'])){
-
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    // Check if email exists
-    $check = $conn->prepare("SELECT * FROM patients WHERE email=?");
-    $check->bind_param("s", $email);
-    $check->execute();
-    $result = $check->get_result();
-
-    if($result->num_rows > 0){
-        $error = "Email already exists!";
-    } else {
-
-       
-        $stmt = $conn->prepare("INSERT INTO patients (name,email,password,role) VALUES (?,?,?, 'patient')");
-        $stmt->bind_param("sss", $name, $email, $password);
-
-        if($stmt->execute()){
-            $success = "Account created successfully! You can now login.";
-        } else {
-            $error = "Registration failed!";
-        }
+if (!defined('BASE_URL')) {
+    // Auto-detects the web path of the site folder, e.g. "/mendnest" (or "" at the domain root).
+    // If redirects land on the wrong URL, replace this block with:  define('BASE_URL', '/your-folder');
+    $docRoot  = isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false;
+    $siteRoot = realpath(dirname(__DIR__));
+    $base = '';
+    if ($docRoot && $siteRoot && strpos($siteRoot, $docRoot) === 0) {
+        $base = str_replace('\\', '/', substr($siteRoot, strlen($docRoot)));
     }
+    define('BASE_URL', rtrim($base, '/'));
+    unset($docRoot, $siteRoot, $base);
 }
 
-/* ================= LOGIN ================= */
-if(isset($_POST['login'])){
+const IDLE_TIMEOUT = 1800;   // sign out after 30 minutes of inactivity
+const ROLE_HOME = [
+    'admin'   => BASE_URL . '/admin/dashboard.php',
+    'patient' => BASE_URL . '/patient/dashboard.php',
+];
+const LOGIN_URL = BASE_URL . '/login.php';
 
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
 
-    $stmt = $conn->prepare("SELECT * FROM patients WHERE email=? AND password=?");
-    $stmt->bind_param("ss",$email,$password);
-    $stmt->execute();
-    $result = $stmt->get_result();
+/* ---------- small helpers ---------- */
+function h($v): string {
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
 
-    if($result->num_rows == 1){
+function redirect(string $url): void {
+    header('Location: ' . $url);
+    exit;
+}
 
-        $user = $result->fetch_assoc();
-
-        $_SESSION['user'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-
-        // Redirect based on role
-        if($user['role'] == 'admin'){
-            header("Location: admin/dashboard.php");
-        } else {
-            header("Location: patient/dashboard.php");
-        }
-        exit();
-
-    } else {
-        $error = "Invalid email or password";
+function csrf_token(): string {
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
-}
-?>
-<!DOCTYPE html>
-<html>
-<head>
-<title>Login / Register</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f9fcfc;
+    return $_SESSION['csrf'];
 }
 
-.auth-box {
-    max-width: 400px;
-    margin: 80px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+function csrf_valid(): bool {
+    return hash_equals($_SESSION['csrf'] ?? '', (string)($_POST['csrf'] ?? ''));
 }
 
-.toggle-btn {
-    cursor: pointer;
-    color: #198754;
+function flash(string $type, string $msg): void {
+    $_SESSION['flash'][] = ['type' => $type, 'msg' => $msg];
 }
-</style>
-</head>
 
-<body>
-
-<div class="auth-box">
-
-<h3 class="text-center mb-3" id="form-title">Login</h3>
-
-<?php if($error){ ?>
-<div class="alert alert-danger"><?php echo $error; ?></div>
-<?php } ?>
-
-<?php if($success){ ?>
-<div class="alert alert-success"><?php echo $success; ?></div>
-<?php } ?>
-
-<!-- LOGIN FORM -->
-<form method="POST" id="loginForm">
-    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
-   <button type="submit" name="login" class="btn btn-success w-100">
-Login
-</button>
-</form>
-
-<!-- REGISTER FORM -->
-<form method="POST" id="registerForm" style="display:none;">
-    <input type="text" name="name" class="form-control mb-2" placeholder="Full Name" required>
-    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
-   <button type="submit" name="register" class="btn btn-primary w-100">
-Register
-</button>
-</form>
-
-<p class="text-center mt-3">
-    <span id="toggleText">Don't have an account?</span>
-    <span class="toggle-btn" onclick="toggleForm()"> Register</span>
-</p>
-
-</div>
-
-<script>
-function toggleForm(){
-    let login = document.getElementById("loginForm");
-    let register = document.getElementById("registerForm");
-    let title = document.getElementById("form-title");
-    let text = document.getElementById("toggleText");
-
-    if(login.style.display === "none"){
-        login.style.display = "block";
-        register.style.display = "none";
-        title.innerText = "Login";
-        text.innerText = "Don't have an account?";
-    } else {
-        login.style.display = "none";
-        register.style.display = "block";
-        title.innerText = "Register";
-        text.innerText = "Already have an account?";
+function flash_render(): string {
+    $out = '';
+    foreach ($_SESSION['flash'] ?? [] as $f) {
+        $out .= '<div class="alert alert-' . h($f['type']) . '">' . h($f['msg']) . '</div>';
     }
+    unset($_SESSION['flash']);
+    return $out;
 }
-</script>
 
-</body>
-</html>
+/* ---------- authentication ---------- */
+function current_user(): ?array {
+    return $_SESSION['auth'] ?? null;
+}
+
+function redirect_for_role(string $role): void {
+    redirect(ROLE_HOME[$role] ?? LOGIN_URL);
+}
+
+function login_user(array $row): void {
+    session_regenerate_id(true);                       // prevents session fixation
+    unset($_SESSION['admin'], $_SESSION['patient'], $_SESSION['user'], $_SESSION['role']); // old formats
+    $_SESSION['auth'] = [
+        'id'    => (int)$row['id'],
+        'name'  => (string)$row['name'],
+        'email' => (string)$row['email'],
+        'role'  => (string)$row['role'],
+    ];
+    $_SESSION['last_active'] = time();
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+function logout_user(): void {
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $p = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+    }
+    session_destroy();
+}
+
+/* Top of any page that needs a signed-in user. */
+function require_login(): array {
+    header('Cache-Control: no-store, no-cache, must-revalidate');   // no back-button access after logout
+    header('Pragma: no-cache');
+
+    $user = current_user();
+    if (!$user) {
+        redirect(LOGIN_URL);
+    }
+    if (time() - ($_SESSION['last_active'] ?? 0) > IDLE_TIMEOUT) {
+        logout_user();
+        redirect(LOGIN_URL . '?timeout=1');
+    }
+    $_SESSION['last_active'] = time();
+    return $user;
+}
+
+/* Top of role-restricted pages:  $admin = require_role('admin');
+   Signed-in users with the wrong role are sent to their own area. */
+function require_role(string ...$roles): array {
+    $user = require_login();
+    if (!in_array($user['role'], $roles, true)) {
+        redirect_for_role($user['role']);
+    }
+    return $user;
+}

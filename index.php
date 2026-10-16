@@ -201,34 +201,96 @@ foreach($services as $service){
 </div>
 </section>
 
+<?php
+/* Paste this block where your TESTIMONIALS + CTA sections were.
+   REQUIREMENTS for the page that contains it (e.g. index.php):
+     1. session_start();  must be the very first line of the page,
+        before `include '../includes/header.php'`.
+     2. $conn must already be available (connection.php included above).
+*/
+
+if (!function_exists('e')) {
+    function e(string $v): string {
+        return htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+// One-time messages left by submit_testimonial.php
+$t_success = $_SESSION['t_success'] ?? '';
+$t_errors  = $_SESSION['t_errors']  ?? [];
+$t_old     = $_SESSION['t_old']     ?? ['name' => '', 'message' => ''];
+unset($_SESSION['t_success'], $_SESSION['t_errors'], $_SESSION['t_old']);
+
+// Only approved testimonials, newest first
+$testimonials = [];
+try {
+    $res = $conn->query(
+        "SELECT name, message FROM testimonials
+         WHERE is_approved = 1
+         ORDER BY created_at DESC
+         LIMIT 3"
+    );
+    $testimonials = $res->fetch_all(MYSQLI_ASSOC);
+} catch (mysqli_sql_exception $ex) {
+    error_log('Testimonials fetch failed: ' . $ex->getMessage());
+}
+?>
+
 <!-- TESTIMONIALS -->
-<section class="py-5 bg-light text-center">
+<section id="testimonials" class="py-5 bg-light text-center">
 <div class="container">
 
 <h2 class="fw-bold mb-5">Testimonials</h2>
 
-<?php
-if(isset($_POST['t_name'])){
-$name = $_POST['t_name'];
-$message = $_POST['t_message'];
+<?php if ($t_success !== ''): ?>
+    <div class="alert alert-success mx-auto" style="max-width:500px;">
+        <?= e($t_success) ?>
+    </div>
+<?php endif; ?>
 
-mysqli_query($conn,"INSERT INTO testimonials(name,message) VALUES('$name','$message')");
-}
-?>
+<?php if ($t_errors): ?>
+    <div class="alert alert-danger mx-auto text-start" style="max-width:500px;">
+        <ul class="mb-0">
+            <?php foreach ($t_errors as $err): ?>
+                <li><?= e($err) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
 
-<form method="POST" class="mx-auto mb-4" style="max-width:500px;">
-<input type="text" name="t_name" class="form-control mb-3" placeholder="Your Name" required>
-<textarea name="t_message" class="form-control mb-3" placeholder="Your Experience"></textarea>
-<button class="btn btn-success">Submit</button>
+<form method="POST" action="submit_testimonial.php" class="mx-auto mb-4" style="max-width:500px;">
+    <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
+
+    <!-- Honeypot (hidden from humans) -->
+    <div style="position:absolute; left:-9999px;" aria-hidden="true">
+        <label for="t_website">Leave this field empty</label>
+        <input type="text" id="t_website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <label for="t_name" class="visually-hidden">Your Name</label>
+    <input type="text" id="t_name" name="t_name" class="form-control mb-3"
+           maxlength="100" value="<?= e($t_old['name']) ?>"
+           placeholder="Your Name" required>
+
+    <label for="t_message" class="visually-hidden">Your Experience</label>
+    <textarea id="t_message" name="t_message" class="form-control mb-3" rows="4"
+              minlength="10" maxlength="1000" placeholder="Your Experience"
+              required><?= e($t_old['message']) ?></textarea>
+
+    <button type="submit" class="btn btn-success">Submit</button>
 </form>
 
-<?php
-$result = mysqli_query($conn,"SELECT * FROM testimonials LIMIT 3");
-
-while($row = mysqli_fetch_assoc($result)){
-echo "<p class='mt-2'>\"".$row['message']."\" - ".$row['name']."</p>";
-}
-?>
+<?php if ($testimonials): ?>
+    <?php foreach ($testimonials as $row): ?>
+        <p class="mt-2">&ldquo;<?= e($row['message']) ?>&rdquo; &mdash; <?= e($row['name']) ?></p>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p class="text-muted">Be the first to share your experience.</p>
+<?php endif; ?>
 
 </div>
 </section>

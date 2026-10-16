@@ -1,6 +1,9 @@
-<?php
-// header.php
-?>
+<?php require_once __DIR__ . '/auth.php'; $u = current_user(); ?>
+<?php if ($u): ?>
+    <a href="<?= h(ROLE_HOME[$u['role']]) ?>">My Dashboard</a>
+<?php else: ?>
+    <a href="<?= h(BASE_URL) ?>/login.php">Login</a>
+<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="en">
