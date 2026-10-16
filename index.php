@@ -1,5 +1,27 @@
-<?php include 'includes/header.php'; ?>
-<?php include 'database/connection.php'; ?>
+<?php
+require_once 'includes/header.php';      // also starts the session (via auth.php)
+require_once 'database/connection.php';
+
+// One-time messages left by pages/submit_testimonial.php
+$t_success = $_SESSION['t_success'] ?? '';
+$t_errors  = $_SESSION['t_errors']  ?? [];
+$t_old     = $_SESSION['t_old']     ?? ['name' => '', 'message' => ''];
+unset($_SESSION['t_success'], $_SESSION['t_errors'], $_SESSION['t_old']);
+
+// Only approved testimonials, newest first
+$testimonials = [];
+try {
+    $res = $conn->query(
+        "SELECT name, message FROM testimonials
+         WHERE is_approved = 1
+         ORDER BY created_at DESC
+         LIMIT 3"
+    );
+    $testimonials = $res->fetch_all(MYSQLI_ASSOC);
+} catch (mysqli_sql_exception $ex) {
+    error_log('Testimonials fetch failed: ' . $ex->getMessage());
+}
+?>
 
 <!-- HERO (WHITE BACKGROUND) -->
 <section class="hero-clean text-center">
@@ -30,7 +52,7 @@ We focus on illness prevention, recovery support and improving your overall well
 <div class="row align-items-center">
 
 <div class="col-md-5 mb-4">
-<img src="assets/nurse.jpg" class="img-fluid rounded shadow">
+<img src="assets/nurse.jpg" alt="Mend Nest nurse" class="img-fluid rounded shadow">
 </div>
 
 <div class="col-md-7">
@@ -52,7 +74,7 @@ We serve post-surgical patients, palliative care clients, individuals with chron
 <section class="py-5 text-center">
 <div class="container">
 
-<h2 class="fw-bold mb-5">Our Vision & Mission</h2>
+<h2 class="fw-bold mb-5">Our Vision &amp; Mission</h2>
 
 <div class="row g-4 justify-content-center">
 
@@ -120,9 +142,9 @@ We serve post-surgical patients, palliative care clients, individuals with chron
 
 <div class="mx-auto" style="max-width:700px;">
 <ul class="premium-list">
-<li>Care tailored to each client’s needs & preferences</li>
+<li>Care tailored to each client’s needs &amp; preferences</li>
 <li>More time per patient for thorough assessments</li>
-<li>Extensive education & support for patients and families</li>
+<li>Extensive education &amp; support for patients and families</li>
 <li>Bridges the gap between hospital and home care</li>
 </ul>
 </div>
@@ -140,27 +162,27 @@ We serve post-surgical patients, palliative care clients, individuals with chron
 
 <?php
 $services = [
-"Elderly Support",
-"Postnatal Care",
-"Post Surgery Recovery",
-"Chronic Illness Management",
-"Palliative Care",
-"Home Safety Evaluation",
-"Nursing Procedures at Home",
-"Preventive Care",
-"Care Coordination"
+    "Elderly Support",
+    "Postnatal Care",
+    "Post Surgery Recovery",
+    "Chronic Illness Management",
+    "Palliative Care",
+    "Home Safety Evaluation",
+    "Nursing Procedures at Home",
+    "Preventive Care",
+    "Care Coordination"
 ];
 
-foreach($services as $service){
+foreach ($services as $service):
 ?>
 
 <div class="col-md-4">
     <div class="service-card">
-        <h5><?php echo $service; ?></h5>
+        <h5><?= h($service) ?></h5>
     </div>
 </div>
 
-<?php } ?>
+<?php endforeach; ?>
 
 </div>
 
@@ -201,45 +223,6 @@ foreach($services as $service){
 </div>
 </section>
 
-<?php
-/* Paste this block where your TESTIMONIALS + CTA sections were.
-   REQUIREMENTS for the page that contains it (e.g. index.php):
-     1. session_start();  must be the very first line of the page,
-        before `include '../includes/header.php'`.
-     2. $conn must already be available (connection.php included above).
-*/
-
-if (!function_exists('e')) {
-    function e(string $v): string {
-        return htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
-    }
-}
-
-if (empty($_SESSION['csrf'])) {
-    $_SESSION['csrf'] = bin2hex(random_bytes(32));
-}
-
-// One-time messages left by submit_testimonial.php
-$t_success = $_SESSION['t_success'] ?? '';
-$t_errors  = $_SESSION['t_errors']  ?? [];
-$t_old     = $_SESSION['t_old']     ?? ['name' => '', 'message' => ''];
-unset($_SESSION['t_success'], $_SESSION['t_errors'], $_SESSION['t_old']);
-
-// Only approved testimonials, newest first
-$testimonials = [];
-try {
-    $res = $conn->query(
-        "SELECT name, message FROM testimonials
-         WHERE is_approved = 1
-         ORDER BY created_at DESC
-         LIMIT 3"
-    );
-    $testimonials = $res->fetch_all(MYSQLI_ASSOC);
-} catch (mysqli_sql_exception $ex) {
-    error_log('Testimonials fetch failed: ' . $ex->getMessage());
-}
-?>
-
 <!-- TESTIMONIALS -->
 <section id="testimonials" class="py-5 bg-light text-center">
 <div class="container">
@@ -248,7 +231,7 @@ try {
 
 <?php if ($t_success !== ''): ?>
     <div class="alert alert-success mx-auto" style="max-width:500px;">
-        <?= e($t_success) ?>
+        <?= h($t_success) ?>
     </div>
 <?php endif; ?>
 
@@ -256,14 +239,15 @@ try {
     <div class="alert alert-danger mx-auto text-start" style="max-width:500px;">
         <ul class="mb-0">
             <?php foreach ($t_errors as $err): ?>
-                <li><?= e($err) ?></li>
+                <li><?= h($err) ?></li>
             <?php endforeach; ?>
         </ul>
     </div>
 <?php endif; ?>
 
-<form method="POST" action="submit_testimonial.php" class="mx-auto mb-4" style="max-width:500px;">
-    <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
+<form method="POST" action="<?= h(BASE_URL) ?>/pages/submit_testimonial.php"
+      class="mx-auto mb-4" style="max-width:500px;">
+    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 
     <!-- Honeypot (hidden from humans) -->
     <div style="position:absolute; left:-9999px;" aria-hidden="true">
@@ -273,20 +257,20 @@ try {
 
     <label for="t_name" class="visually-hidden">Your Name</label>
     <input type="text" id="t_name" name="t_name" class="form-control mb-3"
-           maxlength="100" value="<?= e($t_old['name']) ?>"
+           maxlength="100" value="<?= h($t_old['name']) ?>"
            placeholder="Your Name" required>
 
     <label for="t_message" class="visually-hidden">Your Experience</label>
     <textarea id="t_message" name="t_message" class="form-control mb-3" rows="4"
               minlength="10" maxlength="1000" placeholder="Your Experience"
-              required><?= e($t_old['message']) ?></textarea>
+              required><?= h($t_old['message']) ?></textarea>
 
     <button type="submit" class="btn btn-success">Submit</button>
 </form>
 
 <?php if ($testimonials): ?>
     <?php foreach ($testimonials as $row): ?>
-        <p class="mt-2">&ldquo;<?= e($row['message']) ?>&rdquo; &mdash; <?= e($row['name']) ?></p>
+        <p class="mt-2">&ldquo;<?= h($row['message']) ?>&rdquo; &mdash; <?= h($row['name']) ?></p>
     <?php endforeach; ?>
 <?php else: ?>
     <p class="text-muted">Be the first to share your experience.</p>
@@ -302,7 +286,7 @@ try {
 <h2 class="fw-bold mb-3">Need Professional Home Care?</h2>
 <p class="mb-4">Get started with personalized nursing services today.</p>
 
-<a href="consultation.php" class="btn btn-light px-4 py-2 fw-semibold">
+<a href="<?= h(BASE_URL) ?>/pages/consultation.php" class="btn btn-light px-4 py-2 fw-semibold">
 Request Care
 </a>
 

@@ -1,10 +1,8 @@
-<?php require_once __DIR__ . '/auth.php'; $u = current_user(); ?>
-<?php if ($u): ?>
-    <a href="<?= h(ROLE_HOME[$u['role']]) ?>">My Dashboard</a>
-<?php else: ?>
-    <a href="<?= h(BASE_URL) ?>/login.php">Login</a>
-<?php endif; ?>
-
+<?php
+require_once __DIR__ . '/auth.php';   // starts the session; gives us current_user(), h(), BASE_URL
+$navUser = current_user();
+$navBase = h(BASE_URL);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,11 +11,13 @@
     <title>Mend Nest KE - Home Nursing</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- AOS (animations) -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/mendnest/css/style.css">
+    <link rel="stylesheet" href="<?= $navBase ?>/css/style.css">
 
-    <!-- Google Fonts (optional but professional) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -33,7 +33,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
 
-        <a class="navbar-brand fw-bold" href="/mendnest/index.php">
+        <a class="navbar-brand fw-bold" href="<?= $navBase ?>/index.php">
             Mend Nest KE
         </a>
 
@@ -48,37 +48,43 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="/mendnest/index.php">
-                        Home
-                    </a>
+                    <a class="nav-link active" href="<?= $navBase ?>/index.php">Home</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/pages/consultation.php">
-                        Consultation
-                    </a>
+                    <a class="nav-link" href="<?= $navBase ?>/pages/consultation.php">Consultation</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/pages/services.php">
-                        Services
-                    </a>
+                    <a class="nav-link" href="<?= $navBase ?>/pages/services.php">Services</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/pages/contact.php">
-                        Contact
-                    </a>
+                    <a class="nav-link" href="<?= $navBase ?>/pages/contact.php">Contact</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/mendnest/pages/blog.php">
-                        Blog
-                    </a>
+                    <a class="nav-link" href="<?= $navBase ?>/pages/blog.php">Blog</a>
                 </li>
+
+                <?php if ($navUser): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= h(ROLE_HOME[$navUser['role']] ?? LOGIN_URL) ?>">My Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <form method="POST" action="<?= $navBase ?>/logout.php" class="d-inline">
+                            <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                            <button type="submit" class="nav-link btn btn-link">Logout</button>
+                        </form>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $navBase ?>/login.php">Login</a>
+                    </li>
+                <?php endif; ?>
 
             </ul>
         </div>
