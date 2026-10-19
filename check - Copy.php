@@ -88,5 +88,11 @@ if (is_file("$root/database/connection.php")) {
         $n = (int)$conn->query('SELECT COUNT(*) FROM patients WHERE password NOT LIKE \'$2y$%\'')->fetch_row()[0];
         row($n === 0, 'Unhashed passwords in patients', $n === 0 ? 'none' : "$n found  → run: php database/migrate_passwords.php (or nobody can log in)");
     } catch (mysqli_sql_exception $e) { /* patients table problem already reported above */ }
+    try {
+        $col = $conn->query("SHOW COLUMNS FROM patients LIKE 'password'")->fetch_assoc();
+        $len = preg_match('/\((\d+)\)/', (string)($col['Type'] ?? ''), $m) ? (int)$m[1] : 0;
+        row($len >= 60, 'patients.password column size',
+            ($col['Type'] ?? '?') . ($len >= 60 ? '' : '  → too short for password hashes (needs 60+). Run: ALTER TABLE patients MODIFY password VARCHAR(255) NOT NULL;'));
+    } catch (mysqli_sql_exception $e) { /* reported above */ }
 }
 echo '</table><p><strong>Delete check.php when you are done.</strong></p>';

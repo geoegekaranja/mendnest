@@ -10,6 +10,13 @@ if ($u = current_user()) {
 const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
 const LOCK_MINUTES = 15;
 
+// On your own computer (localhost) the technical reason for a database error is shown;
+// visitors on a live site never see it.
+function dev_detail(Throwable $ex): string {
+    return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
+        ? ' [Technical detail: ' . $ex->getMessage() . ']' : '';
+}
+
 $error = '';
 $info  = isset($_GET['timeout']) ? 'You were signed out due to inactivity. Please sign in again.' : '';
 $mode  = 'login';           // which form to show: 'login' or 'register'
@@ -87,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } catch (mysqli_sql_exception $ex) {
                 error_log('Login error: ' . $ex->getMessage());
-                $error = 'Something went wrong. Please try again.';
+                $error = 'Something went wrong. Please try again.' . dev_detail($ex);
             }
         }
 
@@ -135,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'An account with this email already exists.';
                 } else {
                     error_log('Register error: ' . $ex->getMessage());
-                    $error = 'Registration failed. Please try again.';
+                    $error = 'Registration failed. Please try again.' . dev_detail($ex);
                 }
             }
         }
