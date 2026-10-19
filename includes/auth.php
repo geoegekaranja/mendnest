@@ -2,17 +2,31 @@
 /* Shared authentication + helper functions.
    Include this FIRST on every page, before any output is sent. */
 
+// Where the site lives in the browser address bar:
+//   http://localhost/mendnest/   ->  '/mendnest'
+//   https://www.example.com/     ->  ''          (site at the domain root)
+// Set it to null to auto-detect instead.
+const SITE_FOLDER = '/mendnest';
+
 if (!defined('BASE_URL')) {
-    // Auto-detects the web path of the site folder, e.g. "/mendnest" (or "" at the domain root).
-    // If redirects land on the wrong URL, replace this block with:  define('BASE_URL', '/your-folder');
-    $docRoot  = isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false;
-    $siteRoot = realpath(dirname(__DIR__));
-    $base = '';
-    if ($docRoot && $siteRoot && strpos($siteRoot, $docRoot) === 0) {
-        $base = str_replace('\\', '/', substr($siteRoot, strlen($docRoot)));
+    if (SITE_FOLDER !== null) {
+        define('BASE_URL', rtrim(SITE_FOLDER, '/'));
+    } else {
+        // Auto-detect: compare this script's file path with its URL path
+        $norm     = fn($p) => rtrim(str_replace('\\', '/', (string)$p), '/');
+        $siteRoot = $norm(realpath(dirname(__DIR__)));
+        $script   = $norm(isset($_SERVER['SCRIPT_FILENAME']) ? realpath($_SERVER['SCRIPT_FILENAME']) : '');
+        $name     = $norm($_SERVER['SCRIPT_NAME'] ?? '');
+        $base     = '';
+        if ($siteRoot !== '' && stripos($script, $siteRoot . '/') === 0) {
+            $rel = substr($script, strlen($siteRoot));            // e.g. "/pages/contact.php"
+            if (strlen($name) >= strlen($rel) && strcasecmp(substr($name, -strlen($rel)), $rel) === 0) {
+                $base = substr($name, 0, strlen($name) - strlen($rel));
+            }
+        }
+        define('BASE_URL', $base);
+        unset($norm, $siteRoot, $script, $name, $base, $rel);
     }
-    define('BASE_URL', rtrim($base, '/'));
-    unset($docRoot, $siteRoot, $base);
 }
 
 const IDLE_TIMEOUT = 1800;   // sign out after 30 minutes of inactivity

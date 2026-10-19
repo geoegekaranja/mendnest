@@ -18,6 +18,10 @@ if (!function_exists('page_url')) {
 $navUser = current_user();
 $current = basename($_SERVER['SCRIPT_NAME'] ?? '');
 
+// Version number on the CSS link so the browser never shows an old cached copy
+$cssFile = dirname(__DIR__) . '/css/style.css';
+$cssVer  = is_file($cssFile) ? filemtime($cssFile) : 0;
+
 // Main menu. Add or rename pages here; missing files are skipped automatically.
 $navItems = [
     'Home'         => BASE_URL . '/index.php',
@@ -28,14 +32,11 @@ $navItems = [
     'Contact'      => page_url('contact.php'),
 ];
 
-// "Book Appointment": patients go straight to the booking form, guests sign in first,
-// admins don't book, so no button for them.
-$bookUrl = null;
+// "Book Appointment" is only for signed-in patients (it opens their booking form).
+// Visitors use the Consultation page; admins don't book.
+$bookUrl   = null;
 $bookLabel = 'Book Appointment';
-if (!$navUser) {
-    $bookUrl   = BASE_URL . '/login.php';
-    $bookLabel = 'Sign in to Book';
-} elseif ($navUser['role'] === 'patient') {
+if ($navUser && $navUser['role'] === 'patient') {
     $bookUrl = BASE_URL . '/patient/book.php';
 }
 ?>
@@ -51,7 +52,7 @@ if (!$navUser) {
     <!-- AOS (animations) -->
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?= h(BASE_URL) ?>/css/style.css">
+    <link rel="stylesheet" href="<?= h(BASE_URL) ?>/css/style.css?v=<?= (int)$cssVer ?>">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
