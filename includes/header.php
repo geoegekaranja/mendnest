@@ -1,7 +1,43 @@
 <?php
 require_once __DIR__ . '/auth.php';   // starts the session; gives us current_user(), h(), BASE_URL
+
+if (!function_exists('page_url')) {
+    /* Web address of a site page. Looks in /pages first, then the site root.
+       Returns null when the file doesn't exist, so we never print a dead link. */
+    function page_url(string $file): ?string {
+        $root = dirname(__DIR__);
+        foreach (['/pages/', '/'] as $dir) {
+            if (is_file($root . $dir . $file)) {
+                return BASE_URL . $dir . $file;
+            }
+        }
+        return null;
+    }
+}
+
 $navUser = current_user();
-$navBase = h(BASE_URL);
+$current = basename($_SERVER['SCRIPT_NAME'] ?? '');
+
+// Main menu. Add or rename pages here; missing files are skipped automatically.
+$navItems = [
+    'Home'         => BASE_URL . '/index.php',
+    'About'        => page_url('about.php'),
+    'Services'     => page_url('services.php'),
+    'Consultation' => page_url('consultation.php'),
+    'Blog'         => page_url('blog.php'),
+    'Contact'      => page_url('contact.php'),
+];
+
+// "Book Appointment": patients go straight to the booking form, guests sign in first,
+// admins don't book, so no button for them.
+$bookUrl = null;
+$bookLabel = 'Book Appointment';
+if (!$navUser) {
+    $bookUrl   = BASE_URL . '/login.php';
+    $bookLabel = 'Sign in to Book';
+} elseif ($navUser['role'] === 'patient') {
+    $bookUrl = BASE_URL . '/patient/book.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +51,7 @@ $navBase = h(BASE_URL);
     <!-- AOS (animations) -->
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?= $navBase ?>/css/style.css">
+    <link rel="stylesheet" href="<?= h(BASE_URL) ?>/css/style.css">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -33,7 +69,7 @@ $navBase = h(BASE_URL);
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
 
-        <a class="navbar-brand fw-bold" href="<?= $navBase ?>/index.php">
+        <a class="navbar-brand fw-bold" href="<?= h(BASE_URL) ?>/index.php">
             Mend Nest KE
         </a>
 
@@ -50,39 +86,35 @@ $navBase = h(BASE_URL);
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
 
-                <li class="nav-item">
-                    <a class="nav-link active" href="<?= $navBase ?>/index.php">Home</a>
-                </li>
+                <?php foreach ($navItems as $label => $url): ?>
+                    <?php
+                    if (!$url) { continue; }
+                    $isActive = basename((string)parse_url($url, PHP_URL_PATH)) === $current;
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link<?= $isActive ? ' active' : '' ?>" href="<?= h($url) ?>"><?= h($label) ?></a>
+                    </li>
+                <?php endforeach; ?>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= $navBase ?>/pages/consultation.php">Consultation</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= $navBase ?>/pages/services.php">Services</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= $navBase ?>/pages/contact.php">Contact</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= $navBase ?>/pages/blog.php">Blog</a>
-                </li>
+                <?php if ($bookUrl): ?>
+                    <li class="nav-item ms-lg-2 my-2 my-lg-0">
+                        <a class="btn btn-success btn-sm" href="<?= h($bookUrl) ?>"><?= h($bookLabel) ?></a>
+                    </li>
+                <?php endif; ?>
 
                 <?php if ($navUser): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= h(ROLE_HOME[$navUser['role']] ?? LOGIN_URL) ?>">My Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <form method="POST" action="<?= $navBase ?>/logout.php" class="d-inline">
+                        <form method="POST" action="<?= h(BASE_URL) ?>/logout.php" class="d-inline">
                             <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
                             <button type="submit" class="nav-link btn btn-link">Logout</button>
                         </form>
                     </li>
                 <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $navBase ?>/login.php">Login</a>
+                        <a class="nav-link" href="<?= h(BASE_URL) ?>/login.php">Login</a>
                     </li>
                 <?php endif; ?>
 

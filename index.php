@@ -1,6 +1,13 @@
 <?php
-require_once 'includes/header.php';      // also starts the session (via auth.php)
+require_once 'includes/header.php';      // starts the session, builds the menu, defines page_url()
 require_once 'database/connection.php';
+
+// Links to the other pages (null if a file doesn't exist, in which case that button is hidden)
+$consultUrl  = page_url('consultation.php');
+$aboutUrl    = page_url('about.php');
+$servicesUrl = page_url('services.php');
+$blogUrl     = page_url('blog.php');
+$contactUrl  = page_url('contact.php');
 
 // One-time messages left by pages/submit_testimonial.php
 $t_success = $_SESSION['t_success'] ?? '';
@@ -40,6 +47,13 @@ Welcome to Mend Nest KE, your trusted provider for exclusive home-based nursing 
 We focus on illness prevention, recovery support and improving your overall well-being.
 </p>
 
+<div class="mt-4">
+    <?php if ($consultUrl): ?>
+        <a href="<?= h($consultUrl) ?>" class="btn btn-success px-4 me-2 mb-2">Request Care</a>
+    <?php endif; ?>
+    <a href="#services" class="btn btn-outline-success px-4 mb-2">Our Services</a>
+</div>
+
 </div>
 </section>
 
@@ -64,6 +78,10 @@ We offer dependable, professional care for individuals who may not be able to ac
 <p>
 We serve post-surgical patients, palliative care clients, individuals with chronic illnesses, and families seeking preventive and wellness healthcare support.
 </p>
+
+<?php if ($aboutUrl): ?>
+    <a href="<?= h($aboutUrl) ?>" class="btn btn-outline-success">Learn more about us</a>
+<?php endif; ?>
 </div>
 
 </div>
@@ -186,6 +204,12 @@ foreach ($services as $service):
 
 </div>
 
+<?php if ($servicesUrl): ?>
+    <div class="mt-4">
+        <a href="<?= h($servicesUrl) ?>" class="btn btn-outline-success px-4">View all services</a>
+    </div>
+<?php endif; ?>
+
 </div>
 </section>
 
@@ -197,31 +221,46 @@ foreach ($services as $service):
 
 <div class="row">
 
+<?php
+$packages = [
+    ['Essential Care',  'Non-clinical support and daily assistance.',            false],
+    ['Plus Care',       'Direct nursing care, monitoring and procedures.',       true],
+    ['Integrated Care', 'Multidisciplinary and specialized healthcare support.', false],
+];
+foreach ($packages as [$pkgName, $pkgDesc, $pkgActive]):
+?>
 <div class="col-md-4 mb-4">
-<div class="package-card">
-<h4>Essential Care</h4>
-<p>Non-clinical support and daily assistance.</p>
+<div class="package-card<?= $pkgActive ? ' active' : '' ?>">
+<h4><?= h($pkgName) ?></h4>
+<p><?= h($pkgDesc) ?></p>
+<?php if ($consultUrl): ?>
+    <!-- opens the consultation form with this package already selected -->
+    <a href="<?= h($consultUrl . '?package=' . rawurlencode($pkgName)) ?>"
+       class="btn btn-sm btn-success">Choose this package</a>
+<?php endif; ?>
 </div>
 </div>
-
-<div class="col-md-4 mb-4">
-<div class="package-card active">
-<h4>Plus Care</h4>
-<p>Direct nursing care, monitoring and procedures.</p>
-</div>
-</div>
-
-<div class="col-md-4 mb-4">
-<div class="package-card">
-<h4>Integrated Care</h4>
-<p>Multidisciplinary and specialized healthcare support.</p>
-</div>
-</div>
+<?php endforeach; ?>
 
 </div>
 
 </div>
 </section>
+
+<!-- BLOG -->
+<?php if ($blogUrl): ?>
+<section class="py-5 text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-3">Health Tips &amp; News</h2>
+<p class="text-muted mb-4">
+Practical advice from our nurses on recovery, elder care and healthy living at home.
+</p>
+<a href="<?= h($blogUrl) ?>" class="btn btn-outline-success px-4">Read our blog</a>
+
+</div>
+</section>
+<?php endif; ?>
 
 <!-- TESTIMONIALS -->
 <section id="testimonials" class="py-5 bg-light text-center">
@@ -286,9 +325,17 @@ foreach ($services as $service):
 <h2 class="fw-bold mb-3">Need Professional Home Care?</h2>
 <p class="mb-4">Get started with personalized nursing services today.</p>
 
-<a href="<?= h(BASE_URL) ?>/pages/consultation.php" class="btn btn-light px-4 py-2 fw-semibold">
-Request Care
-</a>
+<?php if ($consultUrl): ?>
+    <a href="<?= h($consultUrl) ?>" class="btn btn-light px-4 py-2 fw-semibold me-2 mb-2">
+    Request Care
+    </a>
+<?php endif; ?>
+
+<?php if ($bookUrl): ?>
+    <a href="<?= h($bookUrl) ?>" class="btn btn-outline-light px-4 py-2 fw-semibold mb-2">
+    <?= h($bookLabel) ?>
+    </a>
+<?php endif; ?>
 
 </div>
 </section>
@@ -299,9 +346,13 @@ Request Care
 
 <h2 class="fw-bold mb-4">Contact Information</h2>
 
-<p>📞 +254 769364171</p>
-<p>📧 info@mendnest.co.ke</p>
+<p>📞 <a href="tel:+254769364171" class="text-decoration-none text-dark">+254 769364171</a></p>
+<p>📧 <a href="mailto:info@mendnest.co.ke" class="text-decoration-none text-dark">info@mendnest.co.ke</a></p>
 <p>📍 Spur Mall, second floor, room 532</p>
+
+<?php if ($contactUrl): ?>
+    <a href="<?= h($contactUrl) ?>" class="btn btn-success px-4 mt-2">Send us a message</a>
+<?php endif; ?>
 
 </div>
 </section>

@@ -37,6 +37,11 @@ $old = array_fill_keys([
     'package','date','time','duration','service_address','notes'
 ], '');
 
+// Arriving from a "Choose this package" link on the home page: pre-select it
+if (isset($_GET['package']) && in_array($_GET['package'], PACKAGES, true)) {
+    $old['package'] = $_GET['package'];
+}
+
 /* ---------- Handle submission ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
