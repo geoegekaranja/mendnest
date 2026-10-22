@@ -323,3 +323,111 @@ h2 {
 .blog-form {
     max-width: 600px;
 }
+:root {
+    --sidebar-w: 255px;
+    --dash-bg: #f3f6f5;
+}
+
+/* Colour theme per area: admin = dark slate, patient = brand green */
+.admin-area   { --side-bg: #17242b; --side-hover: #22343d; --side-accent: #2fbf7a; }
+.patient-area { --side-bg: #0f6b4a; --side-hover: #13805a; --side-accent: #ffffff; }
+
+body.dash {
+    background: var(--dash-bg);
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+}
+
+/* ---------- Sidebar ---------- */
+.dash-sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--side-bg);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    z-index: 1040;
+    transition: transform .25s ease;
+}
+.dash-brand {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.dash-brand a { color: #fff; text-decoration: none; font-weight: 700; font-size: 1.15rem; }
+.dash-brand small { display: block; color: rgba(255,255,255,.6); font-weight: 400; font-size: .75rem; }
+
+.dash-menu { list-style: none; margin: 0; padding: 1rem .75rem; flex: 1; overflow-y: auto; }
+.dash-menu a {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .65rem .9rem; margin-bottom: .2rem;
+    color: rgba(255,255,255,.8); text-decoration: none;
+    border-radius: 8px; font-size: .92rem;
+}
+.dash-menu a:hover { background: var(--side-hover); color: #fff; }
+.dash-menu a.active {
+    background: var(--side-hover); color: #fff; font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--side-accent);
+}
+.dash-menu i { font-size: 1.1rem; }
+
+.dash-side-footer { padding: .75rem; border-top: 1px solid rgba(255,255,255,.1); }
+.dash-side-footer a, .dash-side-footer button {
+    display: flex; align-items: center; gap: .75rem; width: 100%;
+    padding: .6rem .9rem; border: 0; background: none;
+    color: rgba(255,255,255,.8); text-decoration: none;
+    border-radius: 8px; font-size: .92rem; text-align: left;
+}
+.dash-side-footer a:hover, .dash-side-footer button:hover { background: var(--side-hover); color: #fff; }
+
+/* ---------- Main area ---------- */
+.dash-main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+
+.dash-topbar {
+    background: #fff;
+    padding: .75rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    position: sticky; top: 0; z-index: 1030;
+}
+.dash-title { font-size: 1.2rem; font-weight: 600; margin: 0; flex: 1; }
+.dash-toggle { display: none; border: 0; background: none; font-size: 1.6rem; padding: 0; line-height: 1; }
+
+.dash-user { display: flex; align-items: center; gap: .6rem; }
+.dash-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #198754; color: #fff; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+}
+.dash-user-name { font-size: .9rem; font-weight: 600; line-height: 1.1; }
+.dash-user-role { font-size: .75rem; color: #6c757d; text-transform: capitalize; }
+
+.dash-content { padding: 1.5rem; flex: 1; }
+
+/* ---------- Cards ---------- */
+.card-box, .dash-content .card {
+    background: #fff;
+    border: 0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.dash-content .card .card-body { padding: 0; }
+.card-box h5 { color: #6c757d; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
+.card-box h2 { font-weight: 700; margin: .25rem 0 .5rem; }
+
+/* ---------- Mobile ---------- */
+.dash-backdrop { display: none; }
+
+@media (max-width: 991.98px) {
+    .dash-sidebar { transform: translateX(-100%); }
+    body.sidebar-open .dash-sidebar { transform: translateX(0); }
+    body.sidebar-open .dash-backdrop {
+        display: block; position: fixed; inset: 0;
+        background: rgba(0,0,0,.45); z-index: 1035;
+    }
+    .dash-main { margin-left: 0; }
+    .dash-toggle { display: block; }
+    .dash-user-info { display: none; }
+    .dash-content { padding: 1rem; }
+}
