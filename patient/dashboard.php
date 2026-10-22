@@ -55,10 +55,10 @@ $actions = [
     ['Edit Profile',        patient_link('profile.php'),     'btn-outline-secondary'],
 ];
 
-include '../includes/header.php';
+$pageTitle = 'My Dashboard';
+$active    = 'dashboard';
+include '../includes/dashboard_header.php';
 ?>
-
-<div class="container my-5">
 
     <div class="mb-4">
         <h2 class="fw-bold">Welcome, <?= h($name) ?></h2>
@@ -121,6 +121,4 @@ include '../includes/header.php';
         </div>
     </div>
 
-</div>
-
-<?php include '../includes/footer.php'; ?>
+<?php include '../includes/dashboard_footer.php'; ?>
