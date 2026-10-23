@@ -19,7 +19,7 @@ $done = 0;
 
 foreach ($rows as $r) {
     $pw = (string)$r['password'];
-    if ($pw === '' || strncmp($pw, '$2y$', 4) === 0) { continue; }   // empty or already hashed
+    if ($pw === '' || strncmp($pw, '#$', 4) === 0) { continue; }   // empty or already hashed
     $hash = password_hash($pw, PASSWORD_DEFAULT);
     $upd->bind_param('si', $hash, $r['id']);
     $upd->execute();
