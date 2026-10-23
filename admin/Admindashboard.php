@@ -23,7 +23,7 @@ $cards = [
     ['Total Bookings',        safe_count($conn, "SELECT COUNT(*) FROM bookings"),                           admin_link('bookings.php'),      'bi-calendar-check', 'primary'],
     ['Pending Bookings',      safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE status = 'Pending'"),  admin_link('bookings.php'),      'bi-hourglass-split', 'warning'],
     ['Consultation Requests', safe_count($conn, "SELECT COUNT(*) FROM consultations"),                      admin_link('consultations.php'), 'bi-chat-dots',      'info'],
-    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients WHERE role = 'patient'"),    null,                            'bi-people',         'success'],
+    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients"),    null,                            'bi-people',         'success'],
     ['Testimonials',          safe_count($conn, "SELECT COUNT(*) FROM testimonials"),                       admin_link('testimonials.php'),  'bi-star',           'secondary'],
     ['Awaiting Approval',     safe_count($conn, "SELECT COUNT(*) FROM testimonials WHERE is_approved = 0"), admin_link('testimonials.php'),  'bi-patch-question', 'danger'],
 ];

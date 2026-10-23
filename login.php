@@ -11,17 +11,44 @@ const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
 const LOCK_MINUTES = 15;
 
 /* Admin passwords typed straight into the database use this marker:
-       password column  =  #$YourPassword      (admin accounts only)
+       password column  =  #$YourPassword      (admins table only)
    At the admin's first successful login the site replaces it with a real
-   bcrypt hash ($2y$...), so the readable password does not stay in the database.
-   The person still logs in with  YourPassword  (WITHOUT the #$). */
+   bcrypt hash ($2y$...). The admin logs in with  YourPassword  (WITHOUT the #$). */
 const ADMIN_TEMP_PREFIX = '#$';
+
+/* The role is decided by WHICH TABLE the account is stored in:
+       admins   -> 'admin'
+       patients -> 'patient'
+   There is no role column that could be wrong. */
+const ACCOUNT_TABLES = ['admins' => 'admin', 'patients' => 'patient'];
 
 // On your own computer (localhost) the technical reason for a database error is shown;
 // visitors on a live site never see it.
 function dev_detail(Throwable $ex): string {
     return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
         ? ' [Technical detail: ' . $ex->getMessage() . ']' : '';
+}
+
+/* Finds the account by email: admins first, then patients.
+   Adds 'role' and 'tbl' (the table it came from) to the row. */
+function find_account(mysqli $conn, string $email): ?array {
+    foreach (ACCOUNT_TABLES as $tbl => $role) {
+        $stmt = $conn->prepare(
+            "SELECT id, name, email, password, is_active,
+                    (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
+             FROM `$tbl` WHERE email = ? LIMIT 1"
+        );
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        if ($row) {
+            $row['role'] = $role;
+            $row['tbl']  = $tbl;
+            return $row;
+        }
+    }
+    return null;
 }
 
 $error = '';
@@ -44,15 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Please enter your email and password.';
         } else {
             try {
-                $stmt = $conn->prepare(
-                    "SELECT id, name, email, password, role, is_active,
-                            (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
-                     FROM patients WHERE email = ? LIMIT 1"
-                );
-                $stmt->bind_param('s', $email);
-                $stmt->execute();
-                $user = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
+                $user = find_account($conn, $email);
 
                 if ($user && $user['is_locked']) {
                     $error = 'Too many failed attempts. Please try again in ' . LOCK_MINUTES . ' minutes.';
@@ -60,10 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Verify against a dummy hash if the email is unknown, so timing doesn't reveal which emails exist
                     $stored = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
 
-                    if ($user !== null && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
-                        // "#$" format: accepted for admin accounts only
-                        $ok = $user['role'] === 'admin'
-                              && hash_equals(substr($stored, strlen(ADMIN_TEMP_PREFIX)), $password);
+                    if ($user !== null && $user['role'] === 'admin' && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
+                        // "#$" format: only ever accepted for rows in the admins table
+                        $ok = hash_equals(substr($stored, strlen(ADMIN_TEMP_PREFIX)), $password);
                     } else {
                         // normal case: a real password hash
                         $ok = password_verify($password, $stored) && $user !== null;
@@ -71,20 +89,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($ok && !$user['is_active']) {
                         $error = 'This account has been disabled. Please contact support.';
-                    } elseif ($ok && !isset(ROLE_HOME[$user['role']])) {
-                        $error = 'Your account has no valid role. Please contact support.';
                     } elseif ($ok) {
+                        $tbl = $user['tbl'];   // 'admins' or 'patients' (from the constant above, never from the visitor)
+
                         // Replace a "#$..." password (or an outdated hash) with a fresh real hash
-                        if (str_starts_with($user['password'], ADMIN_TEMP_PREFIX)
+                        if (($user['role'] === 'admin' && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
                             || password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
                             $new = password_hash($password, PASSWORD_DEFAULT);
-                            $up = $conn->prepare("UPDATE patients SET password = ? WHERE id = ?");
+                            $up = $conn->prepare("UPDATE `$tbl` SET password = ? WHERE id = ?");
                             $up->bind_param('si', $new, $user['id']);
                             $up->execute();
                             $up->close();
                         }
                         $up = $conn->prepare(
-                            "UPDATE patients SET failed_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE id = ?"
+                            "UPDATE `$tbl` SET failed_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE id = ?"
                         );
                         $up->bind_param('i', $user['id']);
                         $up->execute();
@@ -94,9 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         redirect_for_role($user['role']);
                     } else {
                         if ($user) {
+                            $tbl = $user['tbl'];
                             // locked_until is assigned first so it sees the count BEFORE this failure is added
                             $up = $conn->prepare(
-                                "UPDATE patients
+                                "UPDATE `$tbl`
                                  SET locked_until = IF(failed_attempts + 1 >= ?, DATE_ADD(NOW(), INTERVAL ? MINUTE), locked_until),
                                      failed_attempts = failed_attempts + 1
                                  WHERE id = ?"
@@ -115,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-    /* ================= REGISTER ================= */
+    /* ================= REGISTER (patients only) ================= */
     } elseif (isset($_POST['register'])) {
         $mode = 'register';
         $old['name']  = trim((string)($_POST['name'] ?? ''));
@@ -135,18 +154,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Passwords do not match.';
         } else {
             try {
-                $chk = $conn->prepare("SELECT id FROM patients WHERE email = ? LIMIT 1");
-                $chk->bind_param('s', $old['email']);
-                $chk->execute();
-                $exists = $chk->get_result()->num_rows > 0;
-                $chk->close();
+                // The email must be free in BOTH tables
+                $exists = find_account($conn, $old['email']) !== null;
 
                 if ($exists) {
                     $error = 'An account with this email already exists.';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    // Role is fixed here on the server: self-registration can never create an admin
-                    $ins = $conn->prepare("INSERT INTO patients (name, email, password, role) VALUES (?, ?, ?, 'patient')");
+                    // Self-registration only ever writes to the patients table, so it can never create an admin
+                    $ins = $conn->prepare("INSERT INTO patients (name, email, password) VALUES (?, ?, ?)");
                     $ins->bind_param('sss', $old['name'], $old['email'], $hash);
                     $ins->execute();
                     $ins->close();

@@ -1,12 +1,11 @@
 <?php
 /* ONE-TIME script: converts every admin password stored in the "#$Password" format
-   into a real bcrypt hash, so the admins do not have to log in first.
+   (admins table) into a real bcrypt hash, so admins do not have to log in first.
 
      before:  #$YourNewPassword
      after:   $2y$10$....................................................   (60 characters)
 
    - Only runs from your own computer (localhost).
-   - Only touches rows where role = 'admin' and the password starts with "#$".
    - Safe to run twice: rows that are already hashed are left alone.
    - Never prints any password.
    - DELETE THIS FILE as soon as you have run it. */
@@ -22,29 +21,23 @@ const ADMIN_TEMP_PREFIX = '#$';   // must match login.php
 
 try {
     $rows = $conn->query(
-        "SELECT id, email, role, password FROM patients WHERE LEFT(password, 2) = '#$'"
+        "SELECT id, email, password FROM admins WHERE LEFT(password, 2) = '#$'"
     )->fetch_all(MYSQLI_ASSOC);
 } catch (mysqli_sql_exception $ex) {
-    exit('Could not read the patients table: ' . $ex->getMessage() . "\n");
+    exit('Could not read the admins table: ' . $ex->getMessage() . "\n");
 }
 
 if (!$rows) {
-    exit("Nothing to migrate: no password starting with #\$ was found.\nDELETE migrate_password.php now.\n");
+    exit("Nothing to migrate: no admin password starting with #\$ was found.\nDELETE migrate_password.php now.\n");
 }
 
-$up        = $conn->prepare("UPDATE patients SET password = ? WHERE id = ?");
+$up        = $conn->prepare("UPDATE admins SET password = ? WHERE id = ?");
 $converted = 0;
 $skipped   = 0;
 
 foreach ($rows as $r) {
     $plain = substr((string)$r['password'], strlen(ADMIN_TEMP_PREFIX));
 
-    if ($r['role'] !== 'admin') {
-        // The #$ format is for admins only, and login.php rejects it for everyone else
-        echo "SKIPPED  {$r['email']}  (role is '{$r['role']}', not admin; fix the role or the password first)\n";
-        $skipped++;
-        continue;
-    }
     if ($plain === '') {
         echo "SKIPPED  {$r['email']}  (nothing after the #\$ marker)\n";
         $skipped++;
