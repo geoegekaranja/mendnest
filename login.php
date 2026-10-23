@@ -10,6 +10,13 @@ if ($u = current_user()) {
 const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
 const LOCK_MINUTES = 15;
 
+/* Admin passwords typed straight into the database use this marker:
+       password column  =  #$YourPassword      (admin accounts only)
+   At the admin's first successful login the site replaces it with a real
+   bcrypt hash ($2y$...), so the readable password does not stay in the database.
+   The person still logs in with  YourPassword  (WITHOUT the #$). */
+const ADMIN_TEMP_PREFIX = '#$';
+
 // On your own computer (localhost) the technical reason for a database error is shown;
 // visitors on a live site never see it.
 function dev_detail(Throwable $ex): string {
@@ -51,15 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'Too many failed attempts. Please try again in ' . LOCK_MINUTES . ' minutes.';
                 } else {
                     // Verify against a dummy hash if the email is unknown, so timing doesn't reveal which emails exist
-                    $hash = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
-                    $ok   = password_verify($password, $hash) && $user !== null;
+                    $stored = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
+
+                    if ($user !== null && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
+                        // "#$" format: accepted for admin accounts only
+                        $ok = $user['role'] === 'admin'
+                              && hash_equals(substr($stored, strlen(ADMIN_TEMP_PREFIX)), $password);
+                    } else {
+                        // normal case: a real password hash
+                        $ok = password_verify($password, $stored) && $user !== null;
+                    }
 
                     if ($ok && !$user['is_active']) {
                         $error = 'This account has been disabled. Please contact support.';
                     } elseif ($ok && !isset(ROLE_HOME[$user['role']])) {
                         $error = 'Your account has no valid role. Please contact support.';
                     } elseif ($ok) {
-                        if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+                        // Replace a "#$..." password (or an outdated hash) with a fresh real hash
+                        if (str_starts_with($user['password'], ADMIN_TEMP_PREFIX)
+                            || password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
                             $new = password_hash($password, PASSWORD_DEFAULT);
                             $up = $conn->prepare("UPDATE patients SET password = ? WHERE id = ?");
                             $up->bind_param('si', $new, $user['id']);

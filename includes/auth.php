@@ -31,7 +31,7 @@ if (!defined('BASE_URL')) {
 
 const IDLE_TIMEOUT = 1800;   // sign out after 30 minutes of inactivity
 const ROLE_HOME = [
-    'admin'   => BASE_URL . '/admin/dashboard.php',
+    'admin'   => BASE_URL . '/admin/admindashboard.php',
     'patient' => BASE_URL . '/patient/dashboard.php',
 ];
 const LOGIN_URL = BASE_URL . '/login.php';
