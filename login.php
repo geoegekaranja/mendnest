@@ -16,6 +16,13 @@ const LOCK_MINUTES = 15;
    bcrypt hash ($2y$...). The admin logs in with  YourPassword  (WITHOUT the #$). */
 const ADMIN_TEMP_PREFIX = '#$';
 
+/* What happens to a "#$..." password after a successful login?
+     false = nothing. The password stays exactly as you saved it and works every time.
+             Login never rewrites ANY password in the database.
+     true  = the site replaces it with a real hash (recommended before the site goes live).
+             From then on you log in with the plain password only, and "#$..." stops working. */
+const UPGRADE_PASSWORDS_ON_LOGIN = false;
+
 /* The role is decided by WHICH TABLE the account is stored in:
        admins   -> 'admin'
        patients -> 'patient'
@@ -52,7 +59,9 @@ function find_account(mysqli $conn, string $email): ?array {
 }
 
 $error = '';
-$info  = isset($_GET['timeout']) ? 'You were signed out due to inactivity. Please sign in again.' : '';
+$info  = isset($_GET['timeout'])
+    ? 'You were signed out due to inactivity. Please sign in again.'
+    : (isset($_GET['loggedout']) ? 'You have been signed out.' : '');
 $mode  = 'login';           // which form to show: 'login' or 'register'
 $old   = ['name' => '', 'email' => ''];
 
@@ -92,9 +101,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } elseif ($ok) {
                         $tbl = $user['tbl'];   // 'admins' or 'patients' (from the constant above, never from the visitor)
 
-                        // Replace a "#$..." password (or an outdated hash) with a fresh real hash
-                        if (($user['role'] === 'admin' && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
-                            || password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+                        // Optional: replace a "#$..." password (or an outdated hash) with a fresh real hash
+                        if (UPGRADE_PASSWORDS_ON_LOGIN
+                            && (($user['role'] === 'admin' && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
+                                || password_needs_rehash($user['password'], PASSWORD_DEFAULT))) {
                             $new = password_hash($password, PASSWORD_DEFAULT);
                             $up = $conn->prepare("UPDATE `$tbl` SET password = ? WHERE id = ?");
                             $up->bind_param('si', $new, $user['id']);
