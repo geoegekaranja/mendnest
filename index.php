@@ -1,284 +1,360 @@
 <?php
-require_once 'includes/auth.php';
+require_once 'includes/header.php';      // starts the session, builds the menu, defines page_url()
 require_once 'database/connection.php';
 
-// Already signed in? Send them to the right area.
-if ($u = current_user()) {
-    redirect_for_role($u['role']);
-}
+// Links to the other pages (null if a file doesn't exist, in which case that button is hidden)
+$consultUrl  = page_url('consultation.php');
+$aboutUrl    = page_url('about.php');
+$servicesUrl = page_url('services.php');
+$blogUrl     = page_url('blog.php');
+$contactUrl  = page_url('contact.php');
 
-const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
-const LOCK_MINUTES = 15;
+// One-time messages left by pages/submit_testimonial.php
+$t_success = $_SESSION['t_success'] ?? '';
+$t_errors  = $_SESSION['t_errors']  ?? [];
+$t_old     = $_SESSION['t_old']     ?? ['name' => '', 'message' => ''];
+unset($_SESSION['t_success'], $_SESSION['t_errors'], $_SESSION['t_old']);
 
-/* Admin passwords typed straight into the database use this marker:
-       password column  =  #$YourPassword      (admins table only)
-   At the admin's first successful login the site replaces it with a real
-   bcrypt hash ($2y$...). The admin logs in with  YourPassword  (WITHOUT the #$). */
-const ADMIN_TEMP_PREFIX = '#$';
-
-/* What happens to a "#$..." password after a successful login?
-     false = nothing. The password stays exactly as you saved it and works every time.
-             Login never rewrites ANY password in the database.
-     true  = the site replaces it with a real hash (recommended before the site goes live).
-             From then on you log in with the plain password only, and "#$..." stops working. */
-const UPGRADE_PASSWORDS_ON_LOGIN = false;
-
-/* The role is decided by WHICH TABLE the account is stored in:
-       admins   -> 'admin'
-       patients -> 'patient'
-   There is no role column that could be wrong. */
-const ACCOUNT_TABLES = ['admins' => 'admin', 'patients' => 'patient'];
-
-// On your own computer (localhost) the technical reason for a database error is shown;
-// visitors on a live site never see it.
-function dev_detail(Throwable $ex): string {
-    return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
-        ? ' [Technical detail: ' . $ex->getMessage() . ']' : '';
-}
-
-/* Finds the account by email: admins first, then patients.
-   Adds 'role' and 'tbl' (the table it came from) to the row. */
-function find_account(mysqli $conn, string $email): ?array {
-    foreach (ACCOUNT_TABLES as $tbl => $role) {
-        $stmt = $conn->prepare(
-            "SELECT id, name, email, password, is_active,
-                    (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
-             FROM `$tbl` WHERE email = ? LIMIT 1"
-        );
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        if ($row) {
-            $row['role'] = $role;
-            $row['tbl']  = $tbl;
-            return $row;
-        }
-    }
-    return null;
-}
-
-$error = '';
-$info  = isset($_GET['timeout'])
-    ? 'You were signed out due to inactivity. Please sign in again.'
-    : (isset($_GET['loggedout']) ? 'You have been signed out.' : '');
-$mode  = 'login';           // which form to show: 'login' or 'register'
-$old   = ['name' => '', 'email' => '', 'role' => 'patient'];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    /* ================= LOGIN ================= */
-    if (isset($_POST['login'])) {
-        $mode = 'login';
-        $email    = trim((string)($_POST['email'] ?? ''));
-        $password = (string)($_POST['password'] ?? '');
-        $old['email'] = $email;
-
-        if (!csrf_valid()) {
-            $error = 'Your session expired. Please try again.';
-        } elseif ($email === '' || $password === '') {
-            $error = 'Please enter your email and password.';
-        } else {
-            try {
-                $user = find_account($conn, $email);
-
-                if ($user && $user['is_locked']) {
-                    $error = 'Too many failed attempts. Please try again in ' . LOCK_MINUTES . ' minutes.';
-                } else {
-                    // Verify against a dummy hash if the email is unknown, so timing doesn't reveal which emails exist
-                    $stored = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
-
-                    if ($user !== null && $user['role'] === 'admin' && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
-                        // "#$" format: only ever accepted for rows in the admins table
-                        $ok = hash_equals(substr($stored, strlen(ADMIN_TEMP_PREFIX)), $password);
-                    } else {
-                        // normal case: a real password hash
-                        $ok = password_verify($password, $stored) && $user !== null;
-                    }
-
-                    if ($ok && !$user['is_active']) {
-                        $error = 'This account has been disabled. Please contact support.';
-                    } elseif ($ok) {
-                        $tbl = $user['tbl'];   // 'admins' or 'patients' (from the constant above, never from the visitor)
-
-                        // Optional: replace a "#$..." password (or an outdated hash) with a fresh real hash
-                        if (UPGRADE_PASSWORDS_ON_LOGIN
-                            && (($user['role'] === 'admin' && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
-                                || password_needs_rehash($user['password'], PASSWORD_DEFAULT))) {
-                            $new = password_hash($password, PASSWORD_DEFAULT);
-                            $up = $conn->prepare("UPDATE `$tbl` SET password = ? WHERE id = ?");
-                            $up->bind_param('si', $new, $user['id']);
-                            $up->execute();
-                            $up->close();
-                        }
-                        $up = $conn->prepare(
-                            "UPDATE `$tbl` SET failed_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE id = ?"
-                        );
-                        $up->bind_param('i', $user['id']);
-                        $up->execute();
-                        $up->close();
-
-                        login_user($user);
-
-                        if ($user['tbl'] === 'admins') {
-                            redirect(ROLE_HOME['admin']);
-                        } elseif ($user['tbl'] === 'patients') {
-                            redirect(ROLE_HOME['patient']);
-                        } else {
-                            redirect(LOGIN_URL);
-                        }
-                    } else {
-                        if ($user) {
-                            $tbl = $user['tbl'];
-                            // locked_until is assigned first so it sees the count BEFORE this failure is added
-                            $up = $conn->prepare(
-                                "UPDATE `$tbl`
-                                 SET locked_until = IF(failed_attempts + 1 >= ?, DATE_ADD(NOW(), INTERVAL ? MINUTE), locked_until),
-                                     failed_attempts = failed_attempts + 1
-                                 WHERE id = ?"
-                            );
-                            $max = MAX_ATTEMPTS; $min = LOCK_MINUTES;
-                            $up->bind_param('iii', $max, $min, $user['id']);
-                            $up->execute();
-                            $up->close();
-                        }
-                        $error = 'Invalid email or password.';   // same message for both cases
-                    }
-                }
-            } catch (mysqli_sql_exception $ex) {
-                error_log('Login error: ' . $ex->getMessage());
-                $error = 'Something went wrong. Please try again.' . dev_detail($ex);
-            }
-        }
-
-    /* ================= REGISTER ================= */
-    } elseif (isset($_POST['register'])) {
-        $mode = 'register';
-        $old['name']  = trim((string)($_POST['name'] ?? ''));
-        $old['email'] = trim((string)($_POST['email'] ?? ''));
-        $old['role']  = trim((string)($_POST['role'] ?? 'patient'));
-        $password     = (string)($_POST['password'] ?? '');
-        $confirm      = (string)($_POST['confirm'] ?? '');
-
-        // Determine destination table based on selected role
-        $target_table = ($old['role'] === 'admin') ? 'admins' : 'patients';
-
-        if (!csrf_valid()) {
-            $error = 'Your session expired. Please try again.';
-        } elseif ($old['name'] === '' || mb_strlen($old['name']) > 100) {
-            $error = 'Please enter your full name (max 100 characters).';
-        } elseif (!filter_var($old['email'], FILTER_VALIDATE_EMAIL) || mb_strlen($old['email']) > 150) {
-            $error = 'Please enter a valid email address.';
-        } elseif (strlen($password) < 8 || strlen($password) > 72) {
-            $error = 'Password must be between 8 and 72 characters.';
-        } elseif ($password !== $confirm) {
-            $error = 'Passwords do not match.';
-        } else {
-            try {
-                // The email must be free in BOTH tables
-                $exists = find_account($conn, $old['email']) !== null;
-
-                if ($exists) {
-                    $error = 'An account with this email already exists.';
-                } else {
-                    $hash = password_hash($password, PASSWORD_DEFAULT);
-                    
-                    // Inserts into either 'admins' or 'patients' depending on selection
-                    $ins = $conn->prepare("INSERT INTO `$target_table` (name, email, password) VALUES (?, ?, ?)");
-                    $ins->bind_param('sss', $old['name'], $old['email'], $hash);
-                    $ins->execute();
-                    $ins->close();
-
-                    flash('success', 'Account created successfully! You can now sign in.');
-                    redirect(LOGIN_URL);
-                }
-            } catch (mysqli_sql_exception $ex) {
-                if ($ex->getCode() === 1062) {
-                    $error = 'An account with this email already exists.';
-                } else {
-                    error_log('Register error: ' . $ex->getMessage());
-                    $error = 'Registration failed. Please try again.' . dev_detail($ex);
-                }
-            }
-        }
-    }
+// Only approved testimonials, newest first
+$testimonials = [];
+try {
+    $res = $conn->query(
+        "SELECT name, message FROM testimonials
+         WHERE is_approved = 1
+         ORDER BY created_at DESC
+         LIMIT 3"
+    );
+    $testimonials = $res->fetch_all(MYSQLI_ASSOC);
+} catch (mysqli_sql_exception $ex) {
+    error_log('Testimonials fetch failed: ' . $ex->getMessage());
 }
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Login / Register</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body { font-family: 'Segoe UI', sans-serif; background: #f9fcfc; }
-.auth-box { max-width: 400px; margin: 80px auto; background: white; padding: 30px;
-            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-.toggle-btn { cursor: pointer; color: #198754; }
-</style>
-</head>
-<body>
 
-<div class="auth-box">
+<!-- HERO (WHITE BACKGROUND) -->
+<section class="hero-clean text-center">
+<div class="container">
 
-<h3 class="text-center mb-3" id="form-title">Login</h3>
+<p class="text-uppercase text-muted">Home Health</p>
 
-<?= flash_render() ?>
-<?php if ($info !== ''): ?><div class="alert alert-info"><?= h($info) ?></div><?php endif; ?>
-<?php if ($error !== ''): ?><div class="alert alert-danger"><?= h($error) ?></div><?php endif; ?>
+<h1 class="fw-bold display-5 text-dark">
+Personalized Home Nursing
+</h1>
 
-<!-- LOGIN FORM -->
-<form method="POST" id="loginForm">
-    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-    <input type="email" name="email" class="form-control mb-2" placeholder="Email" aria-label="Email"
-           maxlength="150" autocomplete="username" required
-           value="<?= $mode === 'login' ? h($old['email']) : '' ?>">
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password"
-           aria-label="Password" autocomplete="current-password" required>
-    <button type="submit" name="login" class="btn btn-success w-100">Login</button>
-</form>
+<hr class="mx-auto" style="width:60px;">
 
-<!-- REGISTER FORM -->
-<form method="POST" id="registerForm" style="display:none;">
-    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-    <input type="text" name="name" class="form-control mb-2" placeholder="Full Name" aria-label="Full name"
-           maxlength="100" required value="<?= $mode === 'register' ? h($old['name']) : '' ?>">
-    <input type="email" name="email" class="form-control mb-2" placeholder="Email" aria-label="Email"
-           maxlength="150" autocomplete="username" required
-           value="<?= $mode === 'register' ? h($old['email']) : '' ?>">
-    <select name="role" class="form-select mb-2" required>
-        <option value="patient" <?= ($mode === 'register' && $old['role'] === 'patient') ? 'selected' : '' ?>>Register as Patient</option>
-        <option value="admin" <?= ($mode === 'register' && $old['role'] === 'admin') ? 'selected' : '' ?>>Register as Admin</option>
-    </select>
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password (min. 8 characters)"
-           aria-label="Password" minlength="8" maxlength="72" autocomplete="new-password" required>
-    <input type="password" name="confirm" class="form-control mb-2" placeholder="Confirm Password"
-           aria-label="Confirm password" minlength="8" maxlength="72" autocomplete="new-password" required>
-    <button type="submit" name="register" class="btn btn-primary w-100">Register</button>
-</form>
-
-<p class="text-center mt-3">
-    <span id="toggleText">Don't have an account?</span>
-    <span class="toggle-btn" onclick="toggleForm()"> Register</span>
+<p class="text-muted mt-3">
+Welcome to Mend Nest KE, your trusted provider for exclusive home-based nursing services.
+We focus on illness prevention, recovery support and improving your overall well-being.
 </p>
+
+<div class="mt-4">
+    <?php if ($consultUrl): ?>
+        <a href="<?= h($consultUrl) ?>" class="btn btn-success px-4 me-2 mb-2">Request Care</a>
+    <?php endif; ?>
+    <a href="#services" class="btn btn-outline-success px-4 mb-2">Our Services</a>
+</div>
+
+</div>
+</section>
+
+<!-- ABOUT -->
+<section class="py-5 bg-white">
+<div class="container">
+
+<h2 class="text-center fw-bold mb-5">ABOUT US</h2>
+
+<div class="row align-items-center">
+
+<div class="col-md-5 mb-4">
+<img src="assets/nurse.jpg" alt="Mend Nest nurse" class="img-fluid rounded shadow">
+</div>
+
+<div class="col-md-7">
+<p>
+We are a team of certified nurses and nurse assistants, fully equipped and prepared to deliver quality nursing services.
+We offer dependable, professional care for individuals who may not be able to access hospital-based services or prefer recovery at home.
+</p>
+
+<p>
+We serve post-surgical patients, palliative care clients, individuals with chronic illnesses, and families seeking preventive and wellness healthcare support.
+</p>
+
+<?php if ($aboutUrl): ?>
+    <a href="<?= h($aboutUrl) ?>" class="btn btn-outline-success">Learn more about us</a>
+<?php endif; ?>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- VISION & MISSION -->
+<section class="py-5 text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">Our Vision &amp; Mission</h2>
+
+<div class="row g-4 justify-content-center">
+
+<div class="col-md-5">
+    <div class="info-card">
+        <h4>Our Vision</h4>
+        <p>
+            To make nursing services accessible and available to all individuals and families.
+        </p>
+    </div>
+</div>
+
+<div class="col-md-5">
+    <div class="info-card">
+        <h4>Our Mission</h4>
+        <p>
+            To provide personalized, high-quality healthcare that enhances recovery and overall well-being.
+        </p>
+    </div>
+</div>
 
 </div>
 
-<script>
-var currentMode = 'login';
-function setMode(mode) {
-    currentMode = mode;
-    var isLogin = (mode === 'login');
-    document.getElementById("loginForm").style.display    = isLogin ? "block" : "none";
-    document.getElementById("registerForm").style.display = isLogin ? "none"  : "block";
-    document.getElementById("form-title").innerText = isLogin ? "Login" : "Register";
-    document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
-    document.querySelector(".toggle-btn").innerText = isLogin ? " Register" : " Login";
-}
-function toggleForm() { setMode(currentMode === 'login' ? 'register' : 'login'); }
-setMode('<?= $mode === 'register' ? 'register' : 'login' ?>');
-</script>
+</div>
+</section>
 
-</body>
-</html>
+<!-- CORE VALUES -->
+<section class="py-5 text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">Core Values</h2>
+
+<div class="row g-4 justify-content-center">
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Quality Care</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Holistic Health</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Accessibility</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Collaboration</div>
+</div>
+
+<div class="col-md-3 col-6">
+    <div class="info-card small-card">Comfort</div>
+</div>
+
+</div>
+
+</div>
+</section>
+
+<!-- WHY -->
+<section class="py-5 bg-light text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">WHY MEND NEST?</h2>
+
+<div class="mx-auto" style="max-width:700px;">
+<ul class="premium-list">
+<li>Care tailored to each client’s needs &amp; preferences</li>
+<li>More time per patient for thorough assessments</li>
+<li>Extensive education &amp; support for patients and families</li>
+<li>Bridges the gap between hospital and home care</li>
+</ul>
+</div>
+
+</div>
+</section>
+
+<!-- SERVICES (9 SERVICES) -->
+<section id="services" class="py-5 text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">Our Services</h2>
+
+<div class="row g-4">
+
+<?php
+$services = [
+    "Elderly Support",
+    "Postnatal Care",
+    "Post Surgery Recovery",
+    "Chronic Illness Management",
+    "Palliative Care",
+    "Home Safety Evaluation",
+    "Nursing Procedures at Home",
+    "Preventive Care",
+    "Care Coordination"
+];
+
+foreach ($services as $service):
+?>
+
+<div class="col-md-4">
+    <div class="service-card">
+        <h5><?= h($service) ?></h5>
+    </div>
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php if ($servicesUrl): ?>
+    <div class="mt-4">
+        <a href="<?= h($servicesUrl) ?>" class="btn btn-outline-success px-4">View all services</a>
+    </div>
+<?php endif; ?>
+
+</div>
+</section>
+
+<!-- PACKAGES -->
+<section class="py-5 bg-white text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">Care Packages</h2>
+
+<div class="row">
+
+<?php
+$packages = [
+    ['Essential Care',  'Non-clinical support and daily assistance.',            false],
+    ['Plus Care',       'Direct nursing care, monitoring and procedures.',       true],
+    ['Integrated Care', 'Multidisciplinary and specialized healthcare support.', false],
+];
+foreach ($packages as [$pkgName, $pkgDesc, $pkgActive]):
+?>
+<div class="col-md-4 mb-4">
+<div class="package-card<?= $pkgActive ? ' active' : '' ?>">
+<h4><?= h($pkgName) ?></h4>
+<p><?= h($pkgDesc) ?></p>
+<?php if ($consultUrl): ?>
+    <!-- opens the consultation form with this package already selected -->
+    <a href="<?= h($consultUrl . '?package=' . rawurlencode($pkgName)) ?>"
+       class="btn btn-sm btn-success">Choose this package</a>
+<?php endif; ?>
+</div>
+</div>
+<?php endforeach; ?>
+
+</div>
+
+</div>
+</section>
+
+<!-- BLOG -->
+<?php if ($blogUrl): ?>
+<section class="py-5 text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-3">Health Tips &amp; News</h2>
+<p class="text-muted mb-4">
+Practical advice from our nurses on recovery, elder care and healthy living at home.
+</p>
+<a href="<?= h($blogUrl) ?>" class="btn btn-outline-success px-4">Read our blog</a>
+
+</div>
+</section>
+<?php endif; ?>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="py-5 bg-light text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-5">Testimonials</h2>
+
+<?php if ($t_success !== ''): ?>
+    <div class="alert alert-success mx-auto" style="max-width:500px;">
+        <?= h($t_success) ?>
+    </div>
+<?php endif; ?>
+
+<?php if ($t_errors): ?>
+    <div class="alert alert-danger mx-auto text-start" style="max-width:500px;">
+        <ul class="mb-0">
+            <?php foreach ($t_errors as $err): ?>
+                <li><?= h($err) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
+<form method="POST" action="<?= h(BASE_URL) ?>/pages/submit_testimonial.php"
+      class="mx-auto mb-4" style="max-width:500px;">
+    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+
+    <!-- Honeypot (hidden from humans) -->
+    <div style="position:absolute; left:-9999px;" aria-hidden="true">
+        <label for="t_website">Leave this field empty</label>
+        <input type="text" id="t_website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <label for="t_name" class="visually-hidden">Your Name</label>
+    <input type="text" id="t_name" name="t_name" class="form-control mb-3"
+           maxlength="100" value="<?= h($t_old['name']) ?>"
+           placeholder="Your Name" required>
+
+    <label for="t_message" class="visually-hidden">Your Experience</label>
+    <textarea id="t_message" name="t_message" class="form-control mb-3" rows="4"
+              minlength="10" maxlength="1000" placeholder="Your Experience"
+              required><?= h($t_old['message']) ?></textarea>
+
+    <button type="submit" class="btn btn-success">Submit</button>
+</form>
+
+<?php if ($testimonials): ?>
+    <?php foreach ($testimonials as $row): ?>
+        <p class="mt-2">&ldquo;<?= h($row['message']) ?>&rdquo; &mdash; <?= h($row['name']) ?></p>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p class="text-muted">Be the first to share your experience.</p>
+<?php endif; ?>
+
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section text-center text-white">
+<div class="container">
+
+<h2 class="fw-bold mb-3">Need Professional Home Care?</h2>
+<p class="mb-4">Get started with personalized nursing services today.</p>
+
+<?php if ($consultUrl): ?>
+    <a href="<?= h($consultUrl) ?>" class="btn btn-light px-4 py-2 fw-semibold me-2 mb-2">
+    Request Care
+    </a>
+<?php endif; ?>
+
+<?php if ($bookUrl): ?>
+    <a href="<?= h($bookUrl) ?>" class="btn btn-outline-light px-4 py-2 fw-semibold mb-2">
+    <?= h($bookLabel) ?>
+    </a>
+<?php endif; ?>
+
+</div>
+</section>
+
+<!-- CONTACT -->
+<section class="py-5 bg-white text-center">
+<div class="container">
+
+<h2 class="fw-bold mb-4">Contact Information</h2>
+
+<p>📞 <a href="tel:+254769364171" class="text-decoration-none text-dark">+254 769364171</a></p>
+<p>📧 <a href="mailto:info@mendnest.co.ke" class="text-decoration-none text-dark">info@mendnest.co.ke</a></p>
+<p>📍 Spur Mall, second floor, room 532</p>
+
+<?php if ($contactUrl): ?>
+    <a href="<?= h($contactUrl) ?>" class="btn btn-success px-4 mt-2">Send us a message</a>
+<?php endif; ?>
+
+</div>
+</section>
+
+<?php include 'includes/footer.php'; ?>

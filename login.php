@@ -120,13 +120,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         login_user($user);
 
-if ($user['tbl'] === 'admins') {
-    redirect(ROLE_HOME['admin']);
-} elseif ($user['tbl'] === 'patients') {
-    redirect(ROLE_HOME['patient']);
-} else {
-    redirect(LOGIN_URL);
-}
+                        if ($user['tbl'] === 'admins') {
+                            redirect(ROLE_HOME['admin']);
+                        } elseif ($user['tbl'] === 'patients') {
+                            redirect(ROLE_HOME['patient']);
+                        } else {
+                            redirect(LOGIN_URL);
+                        }
                     } else {
                         if ($user) {
                             $tbl = $user['tbl'];
@@ -151,7 +151,7 @@ if ($user['tbl'] === 'admins') {
             }
         }
 
-    /* ================= REGISTER (patients only) ================= */
+    /* ================= REGISTER ================= */
     } elseif (isset($_POST['register'])) {
         $mode = 'register';
         $old['name']  = trim((string)($_POST['name'] ?? ''));
@@ -178,8 +178,11 @@ if ($user['tbl'] === 'admins') {
                     $error = 'An account with this email already exists.';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    // Self-registration only ever writes to the patients table, so it can never create an admin
-                    $ins = $conn->prepare("INSERT INTO patients (name, email, password) VALUES (?, ?, ?)");
+                    
+                    // Checks if registration came from an admin-designated context or default patient registration
+                    $target_table = isset($_POST['is_admin']) && $_POST['is_admin'] === '1' ? 'admins' : 'patients';
+
+                    $ins = $conn->prepare("INSERT INTO `$target_table` (name, email, password) VALUES (?, ?, ?)");
                     $ins->bind_param('sss', $old['name'], $old['email'], $hash);
                     $ins->execute();
                     $ins->close();
