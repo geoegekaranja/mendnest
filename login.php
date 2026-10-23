@@ -119,7 +119,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $up->close();
 
                         login_user($user);
-                        redirect_for_role($user['role']);
+
+if ($user['tbl'] === 'admins') {
+    redirect(ROLE_HOME['admin']);
+} elseif ($user['tbl'] === 'patients') {
+    redirect(ROLE_HOME['patient']);
+} else {
+    redirect(LOGIN_URL);
+}
                     } else {
                         if ($user) {
                             $tbl = $user['tbl'];
