@@ -1,7 +1,8 @@
 <?php
-session_start();
 date_default_timezone_set('Africa/Nairobi');
+require_once '../includes/auth.php';          // starts the session; gives current_user(), h(), csrf helpers
 require_once '../database/connection.php';
+require_once '../includes/caregivers.php';
 
 /* ---------- Allowed values (single source of truth) ---------- */
 const COUNTRIES = ['Kenya', 'Uganda', 'Tanzania'];
@@ -31,15 +32,31 @@ if (empty($_SESSION['csrf'])) {
 $success = $_SESSION['flash_success'] ?? '';
 unset($_SESSION['flash_success']);
 
+$user      = current_user();
+$isPatient = $user && $user['role'] === 'patient';
+$caregivers = available_caregivers($conn);
+
 $errors = [];
 $old = array_fill_keys([
     'fname','lname','email','phone','address','city','country',
-    'package','date','time','duration','service_address','notes'
+    'package','date','time','duration','service_address','notes','caregiver_id'
 ], '');
+
+// Signed-in patients get their details filled in
+if ($isPatient && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $parts = preg_split('/\s+/', trim((string)$user['name']), 2);
+    $old['fname'] = $parts[0] ?? '';
+    $old['lname'] = $parts[1] ?? '';
+    $old['email'] = (string)$user['email'];
+}
 
 // Arriving from a "Choose this package" link on the home page: pre-select it
 if (isset($_GET['package']) && in_array($_GET['package'], PACKAGES, true)) {
     $old['package'] = $_GET['package'];
+}
+// Arriving from a caregiver link: pre-select that caregiver
+if (isset($_GET['caregiver'])) {
+    $old['caregiver_id'] = (string)(int)$_GET['caregiver'];
 }
 
 /* ---------- Handle submission ---------- */
@@ -81,6 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     if (!in_array($old['time'],     TIMES,     true)) $errors[] = 'Please select a valid time slot.';
     if (!in_array($old['duration'], DURATIONS, true)) $errors[] = 'Please select a valid duration.';
 
+    // Caregiver: 0 = no preference, otherwise it must be an available caregiver
+    $cgId = (int)$old['caregiver_id'];
+    if ($cgId > 0 && !caregiver_is_available($caregivers, $cgId)) {
+        $errors[] = 'The selected caregiver is no longer available. Please choose another.';
+    }
+
     // Real, non-past date
     $d = DateTime::createFromFormat('Y-m-d', $old['date']);
     if (!$d || $d->format('Y-m-d') !== $old['date']) {
@@ -99,15 +122,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         $errors[] = 'Please confirm that the information is accurate.';
     }
 
-    /* ---------- Insert ---------- */
+    /* ---------- Insert: the consultation AND its booking, together ---------- */
     if (!$errors) {
-        $sql = "INSERT INTO consultations
-                (fname, lname, email, phone, address, city, country,
-                 package, preferred_date, preferred_time, duration,
-                 service_address, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $pid  = $isPatient ? (int)$user['id'] : null;      // visitors: no patient account to link
+        $cg   = $cgId > 0 ? $cgId : null;                  // null = no preference
+        $full = $old['fname'] . ' ' . $old['lname'];
+        $details = sprintf(
+            'Consultation request | Time: %s | Duration: %s | Phone: %s | Location: %s, %s | Notes: %s',
+            $old['time'], $old['duration'], $old['phone'],
+            $old['service_address'], $old['city'], $old['notes']
+        );
+
         try {
-            $stmt = $conn->prepare($sql);
+            $conn->begin_transaction();
+
+            $stmt = $conn->prepare(
+                "INSERT INTO consultations
+                 (fname, lname, email, phone, address, city, country,
+                  package, preferred_date, preferred_time, duration,
+                  service_address, notes)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
             $stmt->bind_param(
                 'sssssssssssss',
                 $old['fname'], $old['lname'], $old['email'], $old['phone'],
@@ -116,7 +151,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
                 $old['service_address'], $old['notes']
             );
             $stmt->execute();
+            $consultationId = (int)$conn->insert_id;
             $stmt->close();
+
+            // The same request also becomes a booking, so it shows up in Bookings
+            $bk = $conn->prepare(
+                "INSERT INTO bookings
+                 (patient_name, service, appointment_date, message, patient_id, caregiver_id,
+                  status, created_at, consultation_id)
+                 VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW(), ?)"
+            );
+            $bk->bind_param('ssssiii', $full, $old['package'], $old['date'], $details, $pid, $cg, $consultationId);
+            $bk->execute();
+            $bk->close();
+
+            $conn->commit();
 
             // Post/Redirect/Get: prevents duplicate submissions on refresh
             $_SESSION['flash_success'] = 'Your care consultation request has been submitted successfully!';
@@ -124,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
             header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
             exit;
         } catch (mysqli_sql_exception $ex) {
+            $conn->rollback();
             error_log('Consultation insert failed: ' . $ex->getMessage());
             $errors[] = 'Unable to submit your request. Please try again.';
         }
@@ -196,6 +246,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     <option value="">Select care package</option>
     <?= options(PACKAGES, $old['package']) ?>
 </select>
+
+<?php
+// Caregiver cards (name + specialization), shared with the patient booking form
+$selectedCaregiver = (int)$old['caregiver_id'];
+include '../includes/caregiver_picker.php';
+?>
 
 <label for="date">Preferred Start Date *</label>
 <input type="date" id="date" name="date" class="form-control"

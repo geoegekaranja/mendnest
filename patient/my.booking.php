@@ -1,57 +1,79 @@
 <?php
-session_start();
-include '../database/connection.php';
+require_once '../includes/auth.php';
+require_once '../database/connection.php';
+$patient = require_role('patient');
 
-$success = "";
-
-if(isset($_POST['submit'])){
-
-$patient_name = $_POST['patient_name'];
-$service = $_POST['service'];
-$date = $_POST['appointment_date'];
-$message = $_POST['message'];
-
-mysqli_query($conn,"INSERT INTO bookings (patient_name,service,appointment_date,message)
-VALUES ('$patient_name','$service','$date','$message')");
-
-$success = "Booking submitted successfully!";
+$pid = (int)$patient['id'];
+$bookings = [];
+try {
+    $stmt = $conn->prepare(
+        "SELECT b.service, b.appointment_date, b.status, b.message,
+                c.name AS caregiver_name, c.specialization
+         FROM bookings b
+         LEFT JOIN caregivers c ON c.id = b.caregiver_id
+         WHERE b.patient_id = ?
+         ORDER BY b.id DESC"
+    );
+    $stmt->bind_param('i', $pid);
+    $stmt->execute();
+    $bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} catch (mysqli_sql_exception $ex) {
+    error_log('My bookings failed: ' . $ex->getMessage());
 }
+
+$statusClass = [
+    'Pending'   => 'bg-warning text-dark',
+    'Confirmed' => 'bg-success',
+    'Cancelled' => 'bg-secondary',
+];
+
+$pageTitle = 'My Bookings';
+$active    = 'bookings';
+include '../includes/dashboard_header.php';
 ?>
 
-<?php include '../includes/header.php'; ?>
+<div class="card-box">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">All my bookings and requests</h5>
+        <?php if (is_file(__DIR__ . '/book.php')): ?>
+            <a href="book.php" class="btn btn-success btn-sm">New booking</a>
+        <?php endif; ?>
+    </div>
 
-<div class="container mt-5">
-
-<h3 class="text-center mb-4">Book Appointment</h3>
-
-<?php if($success){ ?>
-<div class="alert alert-success text-center"><?php echo $success; ?></div>
-<?php } ?>
-
-<div class="row justify-content-center">
-<div class="col-md-6">
-
-<form method="POST" class="card shadow">
-
-<input type="text" name="patient_name" class="form-control mb-3" placeholder="Full Name" required>
-
-<select name="service" class="form-control mb-3">
-<option>Home Nursing</option>
-<option>Elderly Care</option>
-<option>Medical Support</option>
-</select>
-
-<input type="date" name="appointment_date" class="form-control mb-3" required>
-
-<textarea name="message" class="form-control mb-3" placeholder="Message"></textarea>
-
-<button name="submit" class="btn btn-success">Book Now</button>
-
-</form>
-
+    <?php if ($bookings): ?>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr><th>Service</th><th>Date</th><th>Caregiver</th><th>Details</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            <?php foreach ($bookings as $b): ?>
+                <tr>
+                    <td><?= h($b['service']) ?></td>
+                    <td><?= h($b['appointment_date']) ?></td>
+                    <td>
+                        <?php if ($b['caregiver_name']): ?>
+                            <?= h($b['caregiver_name']) ?><br>
+                            <small class="text-muted"><?= h($b['specialization']) ?></small>
+                        <?php else: ?>
+                            <span class="text-muted">To be assigned</span>
+                        <?php endif; ?>
+                    </td>
+                    <td><small><?= h(mb_strimwidth((string)$b['message'], 0, 120, '...')) ?></small></td>
+                    <td>
+                        <span class="badge <?= h($statusClass[$b['status']] ?? 'bg-secondary') ?>">
+                            <?= h($b['status']) ?>
+                        </span>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php else: ?>
+        <p class="text-muted mb-0">You have no bookings yet.</p>
+    <?php endif; ?>
 </div>
-</div>
 
-</div>
-
-<?php include '../includes/footer.php'; ?>
+<?php include '../includes/dashboard_footer.php'; ?>

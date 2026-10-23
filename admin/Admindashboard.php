@@ -20,20 +20,25 @@ function admin_link(string $file): ?string {
 
 // [label, count, link, icon, colour]
 $cards = [
-    ['Total Bookings',        safe_count($conn, "SELECT COUNT(*) FROM bookings"),                           admin_link('bookings.php'),      'bi-calendar-check', 'primary'],
-    ['Pending Bookings',      safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE status = 'Pending'"),  admin_link('bookings.php'),      'bi-hourglass-split', 'warning'],
-    ['Consultation Requests', safe_count($conn, "SELECT COUNT(*) FROM consultations"),                      admin_link('consultations.php'), 'bi-chat-dots',      'info'],
-    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients"),    null,                            'bi-people',         'success'],
-    ['Testimonials',          safe_count($conn, "SELECT COUNT(*) FROM testimonials"),                       admin_link('testimonials.php'),  'bi-star',           'secondary'],
-    ['Awaiting Approval',     safe_count($conn, "SELECT COUNT(*) FROM testimonials WHERE is_approved = 0"), admin_link('testimonials.php'),  'bi-patch-question', 'danger'],
+    ['Total Bookings',        safe_count($conn, "SELECT COUNT(*) FROM bookings"),                                                       admin_link('bookings.php'),                                               'bi-calendar-check',  'primary'],
+    ['Pending Bookings',      safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE status = 'Pending'"),                              admin_link('bookings.php'),                                               'bi-hourglass-split', 'warning'],
+    ['Unassigned Bookings',   safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE caregiver_id IS NULL AND status <> 'Cancelled'"),  admin_link('bookings.php') ? 'bookings.php?filter=unassigned' : null,     'bi-person-x',        'danger'],
+    ['Available Caregivers',  safe_count($conn, "SELECT COUNT(*) FROM caregivers WHERE is_available = 1"),                              admin_link('caregivers.php'),                                             'bi-heart-pulse',     'success'],
+    ['Consultation Requests', safe_count($conn, "SELECT COUNT(*) FROM consultations"),                                                  admin_link('consultations.php'),                                          'bi-chat-dots',       'info'],
+    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients"),                                                       null,                                                                     'bi-people',          'success'],
+    ['Testimonials',          safe_count($conn, "SELECT COUNT(*) FROM testimonials"),                                                   admin_link('testimonials.php'),                                           'bi-star',            'secondary'],
+    ['Awaiting Approval',     safe_count($conn, "SELECT COUNT(*) FROM testimonials WHERE is_approved = 0"),                             admin_link('testimonials.php'),                                           'bi-patch-question',  'danger'],
 ];
 
 // Latest 5 bookings
 $recent = [];
 try {
     $recent = $conn->query(
-        "SELECT patient_name, service, appointment_date, status
-         FROM bookings ORDER BY id DESC LIMIT 5"
+        "SELECT b.patient_name, b.service, b.appointment_date, b.status,
+                c.name AS caregiver_name, c.specialization
+         FROM bookings b
+         LEFT JOIN caregivers c ON c.id = b.caregiver_id
+         ORDER BY b.id DESC LIMIT 5"
     )->fetch_all(MYSQLI_ASSOC);
 } catch (mysqli_sql_exception $ex) {
     error_log('Dashboard recent bookings failed: ' . $ex->getMessage());
@@ -54,7 +59,7 @@ include '../includes/admin_header.php';
 
 <div class="row">
 <?php foreach ($cards as [$label, $count, $link, $icon, $colour]): ?>
-    <div class="col-md-6 col-xl-4 mb-4">
+    <div class="col-md-6 col-xl-3 mb-4">
         <div class="card-box h-100 d-flex align-items-center gap-3">
             <div class="rounded-3 bg-<?= h($colour) ?> bg-opacity-10 text-<?= h($colour) ?> d-flex align-items-center justify-content-center"
                  style="width:56px;height:56px;font-size:1.6rem;">
@@ -82,13 +87,21 @@ include '../includes/admin_header.php';
     <div class="table-responsive">
         <table class="table align-middle mb-0">
             <thead>
-                <tr><th>Patient</th><th>Service</th><th>Date</th><th>Status</th></tr>
+                <tr><th>Patient</th><th>Service</th><th>Caregiver</th><th>Date</th><th>Status</th></tr>
             </thead>
             <tbody>
             <?php foreach ($recent as $b): ?>
                 <tr>
                     <td><?= h($b['patient_name']) ?></td>
                     <td><?= h($b['service']) ?></td>
+                    <td>
+                        <?php if ($b['caregiver_name']): ?>
+                            <?= h($b['caregiver_name']) ?><br>
+                            <small class="text-muted"><?= h($b['specialization']) ?></small>
+                        <?php else: ?>
+                            <span class="text-muted">Unassigned</span>
+                        <?php endif; ?>
+                    </td>
                     <td><?= h($b['appointment_date']) ?></td>
                     <td>
                         <span class="badge <?= h($statusClass[$b['status']] ?? 'bg-secondary') ?>">

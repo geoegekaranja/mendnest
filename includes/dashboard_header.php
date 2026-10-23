@@ -13,9 +13,11 @@ $areaDir  = dirname(__DIR__) . '/' . $area . '/';
 $menuDef = $isAdmin ? [
     ['dashboard',     'Dashboard',     'admindashboard.php', 'bi-speedometer2'],
     ['bookings',      'Bookings',      'bookings.php',      'bi-calendar-check'],
+    ['caregivers',    'Caregivers',    'caregivers.php',    'bi-heart-pulse'],
     ['consultations', 'Consultations', 'consultations.php', 'bi-chat-dots'],
     ['blogs',         'Blog Posts',    'blogs.php',         'bi-journal-text'],
     ['testimonials',  'Testimonials',  'testimonials.php',  'bi-star'],
+    ['admins',        'Admins',        'add_admin.php',     'bi-person-gear'],
 ] : [
     ['dashboard', 'Dashboard',        'dashboard.php',   'bi-speedometer2'],
     ['book',      'Book Appointment', 'book.php',        'bi-calendar-plus'],
