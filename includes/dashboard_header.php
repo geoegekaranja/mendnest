@@ -11,7 +11,7 @@ $areaDir  = dirname(__DIR__) . '/' . $area . '/';
 
 // [active key, label, file inside the area folder, icon]
 $menuDef = $isAdmin ? [
-    ['dashboard',     'Dashboard',     'dashboard.php',     'bi-speedometer2'],
+    ['dashboard',     'Dashboard',     'admindashboard.php', 'bi-speedometer2'],
     ['bookings',      'Bookings',      'bookings.php',      'bi-calendar-check'],
     ['consultations', 'Consultations', 'consultations.php', 'bi-chat-dots'],
     ['blogs',         'Blog Posts',    'blogs.php',         'bi-journal-text'],
