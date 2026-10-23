@@ -92,12 +92,13 @@ function redirect_for_role(string $role): void {
 
 function login_user(array $row): void {
     session_regenerate_id(true);                       // prevents session fixation
-    unset($_SESSION['admin'], $_SESSION['patient'], $_SESSION['user'], $_SESSION['role']); // old formats
+    unset($_SESSION['admin'], $_SESSION['patient'], $_SESSION['user'], $_SESSION['role']); // clear legacy keys
     $_SESSION['auth'] = [
         'id'    => (int)$row['id'],
         'name'  => (string)$row['name'],
         'email' => (string)$row['email'],
         'role'  => (string)$row['role'],
+        'tbl'   => (string)($row['tbl'] ?? '')
     ];
     $_SESSION['last_active'] = time();
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
