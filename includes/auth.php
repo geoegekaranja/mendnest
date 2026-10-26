@@ -31,8 +31,9 @@ if (!defined('BASE_URL')) {
 
 const IDLE_TIMEOUT = 1800;   // sign out after 30 minutes of inactivity
 const ROLE_HOME = [
-    'admin'   => BASE_URL . '/admin/admindashboard.php',
-    'patient' => BASE_URL . '/patient/dashboard.php',
+    'admin'     => BASE_URL . '/admin/admindashboard.php',
+    'caregiver' => BASE_URL . '/caregiver/dashboard.php',
+    'patient'   => BASE_URL . '/patient/dashboard.php',
 ];
 const LOGIN_URL = BASE_URL . '/login.php';
 
@@ -92,13 +93,13 @@ function redirect_for_role(string $role): void {
 
 function login_user(array $row): void {
     session_regenerate_id(true);                       // prevents session fixation
-    unset($_SESSION['admin'], $_SESSION['patient'], $_SESSION['user'], $_SESSION['role']); // clear legacy keys
+    unset($_SESSION['admin'], $_SESSION['patient'], $_SESSION['user'], $_SESSION['role']); // old formats
     $_SESSION['auth'] = [
         'id'    => (int)$row['id'],
         'name'  => (string)$row['name'],
         'email' => (string)$row['email'],
         'role'  => (string)$row['role'],
-        'tbl'   => (string)($row['tbl'] ?? '')
+        'tbl'   => (string)($row['tbl'] ?? ''),
     ];
     $_SESSION['last_active'] = time();
     $_SESSION['csrf'] = bin2hex(random_bytes(32));

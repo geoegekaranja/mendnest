@@ -1,33 +1,49 @@
 <?php
-/* Shared dashboard layout (sidebar + top bar) for BOTH admin and patient areas.
-   The menu is picked from the signed-in user's role.
+/* Shared dashboard layout (sidebar + top bar) for admin, caregiver and patient.
+   The menu is picked from the signed-in user's role, and a menu item only appears
+   when its page file exists, so there are never dead links.
    Set $pageTitle and $active before including this file. */
 require_once __DIR__ . '/auth.php';
 
 $dashUser = current_user();
-$isAdmin  = ($dashUser['role'] ?? '') === 'admin';
-$area     = $isAdmin ? 'admin' : 'patient';
-$areaDir  = dirname(__DIR__) . '/' . $area . '/';
+$role     = $dashUser['role'] ?? 'patient';
+if (!in_array($role, ['admin', 'caregiver', 'patient'], true)) {
+    $role = 'patient';
+}
+$area    = $role;                                        // the folder has the same name as the role
+$areaDir = dirname(__DIR__) . '/' . $area . '/';
 
-// [active key, label, file inside the area folder, icon]
-$menuDef = $isAdmin ? [
-    ['dashboard',     'Dashboard',     'admindashboard.php', 'bi-speedometer2'],
-    ['bookings',      'Bookings',      'bookings.php',      'bi-calendar-check'],
-    ['caregivers',    'Caregivers',    'caregivers.php',    'bi-heart-pulse'],
-    ['consultations', 'Consultations', 'consultations.php', 'bi-chat-dots'],
-    ['blogs',         'Blog Posts',    'blogs.php',         'bi-journal-text'],
-    ['testimonials',  'Testimonials',  'testimonials.php',  'bi-star'],
-    ['admins',        'Admins',        'add_admin.php',     'bi-person-gear'],
-] : [
-    ['dashboard', 'Dashboard',        'dashboard.php',   'bi-speedometer2'],
-    ['book',      'Book Appointment', 'book.php',        'bi-calendar-plus'],
-    ['bookings',  'My Bookings',      'my_bookings.php', 'bi-calendar-check'],
-    ['profile',   'My Profile',       'profile.php',     'bi-person'],
+// [active key, label, file inside the role's folder, icon]
+$menus = [
+    'admin' => [
+        ['dashboard',     'Dashboard',     'admindashboard.php', 'bi-speedometer2'],
+        ['bookings',      'Bookings',      'bookings.php',       'bi-calendar-check'],
+        ['appointments',  'Appointments',  'appointments.php',   'bi-calendar-event'],
+        ['consultations', 'Consultations', 'consultations.php',  'bi-chat-dots'],
+        ['payments',      'Payments',      'payments.php',       'bi-cash-coin'],
+        ['messages',      'Messages',      'messages.php',       'bi-envelope'],
+        ['caregivers',    'Caregivers',    'caregivers.php',     'bi-heart-pulse'],
+        ['blogs',         'Blog Posts',    'blogs.php',          'bi-journal-text'],
+        ['testimonials',  'Testimonials',  'testimonials.php',   'bi-star'],
+        ['admins',        'Admins',        'add_admin.php',      'bi-person-gear'],
+    ],
+    'caregiver' => [
+        ['dashboard',   'Dashboard',      'dashboard.php',   'bi-speedometer2'],
+        ['assignments', 'My Assignments', 'assignments.php', 'bi-clipboard2-pulse'],
+        ['profile',     'My Profile',     'profile.php',     'bi-person-badge'],
+    ],
+    'patient' => [
+        ['dashboard', 'Dashboard',    'dashboard.php',   'bi-speedometer2'],
+        ['book',      'Request Care', 'book.php',        'bi-calendar-plus'],
+        ['bookings',  'My Bookings',  'my_bookings.php', 'bi-calendar-check'],
+        ['profile',   'My Profile',   'profile.php',     'bi-person'],
+    ],
 ];
-// Pages that don't exist yet are skipped, so the menu never has dead links
-$menu = array_filter($menuDef, fn($m) => is_file($areaDir . $m[2]));
+$menu = array_filter($menus[$role], fn($m) => is_file($areaDir . $m[2]));
 
-$pageTitle = $pageTitle ?? ($isAdmin ? 'Admin Dashboard' : 'My Dashboard');
+$portalLabel = ['admin' => 'Admin Panel', 'caregiver' => 'Caregiver Portal', 'patient' => 'Patient Portal'][$role];
+
+$pageTitle = $pageTitle ?? 'Dashboard';
 $active    = $active ?? '';
 
 $cssFile = dirname(__DIR__) . '/css/dashboard.css';
@@ -51,7 +67,7 @@ $initial = mb_strtoupper(mb_substr((string)($dashUser['name'] ?? '?'), 0, 1));
 <aside class="dash-sidebar" id="dashSidebar">
     <div class="dash-brand">
         <a href="<?= h(BASE_URL) ?>/index.php">Mend Nest KE</a>
-        <small><?= $isAdmin ? 'Admin Panel' : 'Patient Portal' ?></small>
+        <small><?= h($portalLabel) ?></small>
     </div>
 
     <ul class="dash-menu">

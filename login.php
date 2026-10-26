@@ -2,32 +2,26 @@
 require_once 'includes/auth.php';
 require_once 'database/connection.php';
 
-// Already signed in? Send them to the right area.
-if ($u = current_user()) {
-    redirect_for_role($u['role']);
-}
-
 const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
 const LOCK_MINUTES = 15;
 
 /* Admin passwords typed straight into the database use this marker:
        password column  =  #$YourPassword      (admins table only)
-   At the admin's first successful login the site replaces it with a real
-   bcrypt hash ($2y$...). The admin logs in with  YourPassword  (WITHOUT the #$). */
+   The admin logs in with  YourPassword  (WITHOUT the #$). */
 const ADMIN_TEMP_PREFIX = '#$';
 
 /* What happens to a "#$..." password after a successful login?
      false = nothing. The password stays exactly as you saved it and works every time.
              Login never rewrites ANY password in the database.
-     true  = the site replaces it with a real hash (recommended before the site goes live).
-             From then on you log in with the plain password only, and "#$..." stops working. */
+     true  = the site replaces it with a real hash (recommended before the site goes live). */
 const UPGRADE_PASSWORDS_ON_LOGIN = false;
 
 /* The role is decided by WHICH TABLE the account is stored in:
-       admins   -> 'admin'
-       patients -> 'patient'
+       admins     -> 'admin'
+       caregivers -> 'caregiver'
+       patients   -> 'patient'
    There is no role column that could be wrong. */
-const ACCOUNT_TABLES = ['admins' => 'admin', 'patients' => 'patient'];
+const ACCOUNT_TABLES = ['admins' => 'admin', 'caregivers' => 'caregiver', 'patients' => 'patient'];
 
 // On your own computer (localhost) the technical reason for a database error is shown;
 // visitors on a live site never see it.
@@ -36,19 +30,29 @@ function dev_detail(Throwable $ex): string {
         ? ' [Technical detail: ' . $ex->getMessage() . ']' : '';
 }
 
-/* Finds the account by email: admins first, then patients.
+/* Finds the account by email (or, for caregivers, by caregiver ID such as CG-0001).
+   Looks in admins, then caregivers, then patients.
    Adds 'role' and 'tbl' (the table it came from) to the row. */
-function find_account(mysqli $conn, string $email): ?array {
+function find_account(mysqli $conn, string $identifier): ?array {
     foreach (ACCOUNT_TABLES as $tbl => $role) {
-        $stmt = $conn->prepare(
-            "SELECT id, name, email, password, is_active,
-                    (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
-             FROM `$tbl` WHERE email = ? LIMIT 1"
-        );
-        $stmt->bind_param('s', $email);
+        $sql = "SELECT id, name, email, password, is_active,
+                       (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
+                FROM `$tbl` WHERE email = ?";
+        if ($tbl === 'caregivers') {
+            $sql .= " OR caregiver_code = ?";
+        }
+        $sql .= " LIMIT 1";
+
+        $stmt = $conn->prepare($sql);
+        if ($tbl === 'caregivers') {
+            $stmt->bind_param('ss', $identifier, $identifier);
+        } else {
+            $stmt->bind_param('s', $identifier);
+        }
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+
         if ($row) {
             $row['role'] = $role;
             $row['tbl']  = $tbl;
@@ -57,6 +61,10 @@ function find_account(mysqli $conn, string $email): ?array {
     }
     return null;
 }
+
+// Is someone already signed in? We do NOT redirect them away: the page shows who it is,
+// so an old session can never block a different account from logging in.
+$current = current_user();
 
 $error = '';
 $info  = isset($_GET['timeout'])
@@ -70,14 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ================= LOGIN ================= */
     if (isset($_POST['login'])) {
         $mode = 'login';
-        $email    = trim((string)($_POST['email'] ?? ''));
+        $email    = trim((string)($_POST['email'] ?? ''));     // email, or caregiver ID
         $password = (string)($_POST['password'] ?? '');
         $old['email'] = $email;
 
         if (!csrf_valid()) {
             $error = 'Your session expired. Please try again.';
         } elseif ($email === '' || $password === '') {
-            $error = 'Please enter your email and password.';
+            $error = 'Please enter your email (or caregiver ID) and password.';
         } else {
             try {
                 $user = find_account($conn, $email);
@@ -85,7 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($user && $user['is_locked']) {
                     $error = 'Too many failed attempts. Please try again in ' . LOCK_MINUTES . ' minutes.';
                 } else {
-                    // Verify against a dummy hash if the email is unknown, so timing doesn't reveal which emails exist
+                    // Verify against a dummy hash if the account is unknown (or has no password yet),
+                    // so timing doesn't reveal which accounts exist
                     $stored = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
 
                     if ($user !== null && $user['role'] === 'admin' && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
@@ -99,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ok && !$user['is_active']) {
                         $error = 'This account has been disabled. Please contact support.';
                     } elseif ($ok) {
-                        $tbl = $user['tbl'];   // 'admins' or 'patients' (from the constant above, never from the visitor)
+                        $tbl = $user['tbl'];   // from the constant above, never from the visitor
 
                         // Optional: replace a "#$..." password (or an outdated hash) with a fresh real hash
                         if (UPGRADE_PASSWORDS_ON_LOGIN
@@ -118,15 +127,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $up->execute();
                         $up->close();
 
-                        login_user($user);
-
-                        if ($user['tbl'] === 'admins') {
-                            redirect(ROLE_HOME['admin']);
-                        } elseif ($user['tbl'] === 'patients') {
-                            redirect(ROLE_HOME['patient']);
-                        } else {
-                            redirect(LOGIN_URL);
+                        // A patient who was sent here from "Request Care" returns to the booking page.
+                        // The address is set by our own request_care.php and checked again here.
+                        $next = null;
+                        if ($user['role'] === 'patient' && !empty($_SESSION['after_login'])) {
+                            $cand = (string)$_SESSION['after_login'];
+                            if (str_starts_with($cand, BASE_URL . '/patient/')) {
+                                $next = $cand;
+                            }
                         }
+                        unset($_SESSION['after_login']);
+
+                        login_user($user);
+                        redirect($next ?? (ROLE_HOME[$user['role']] ?? LOGIN_URL));
                     } else {
                         if ($user) {
                             $tbl = $user['tbl'];
@@ -142,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $up->execute();
                             $up->close();
                         }
-                        $error = 'Invalid email or password.';   // same message for both cases
+                        $error = 'Invalid email or password.';   // same message for every failure
                     }
                 }
             } catch (mysqli_sql_exception $ex) {
@@ -151,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-    /* ================= REGISTER ================= */
+    /* ================= REGISTER (patients only) ================= */
     } elseif (isset($_POST['register'])) {
         $mode = 'register';
         $old['name']  = trim((string)($_POST['name'] ?? ''));
@@ -171,18 +184,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Passwords do not match.';
         } else {
             try {
-                // The email must be free in BOTH tables
+                // The email must be free in ALL account tables
                 $exists = find_account($conn, $old['email']) !== null;
 
                 if ($exists) {
                     $error = 'An account with this email already exists.';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    
-                    // Checks if registration came from an admin-designated context or default patient registration
-                    $target_table = isset($_POST['is_admin']) && $_POST['is_admin'] === '1' ? 'admins' : 'patients';
-
-                    $ins = $conn->prepare("INSERT INTO `$target_table` (name, email, password) VALUES (?, ?, ?)");
+                    // Self-registration only ever writes to the patients table, so it can never create an admin or caregiver
+                    $ins = $conn->prepare("INSERT INTO patients (name, email, password) VALUES (?, ?, ?)");
                     $ins->bind_param('sss', $old['name'], $old['email'], $hash);
                     $ins->execute();
                     $ins->close();
@@ -223,18 +233,32 @@ body { font-family: 'Segoe UI', sans-serif; background: #f9fcfc; }
 <h3 class="text-center mb-3" id="form-title">Login</h3>
 
 <?= flash_render() ?>
+<?php if ($current): ?>
+<div class="alert alert-warning">
+    You are already signed in as <strong><?= h($current['name']) ?></strong> (<?= h($current['role']) ?>).
+    <div class="mt-2 d-flex gap-2">
+        <a href="<?= h(ROLE_HOME[$current['role']] ?? LOGIN_URL) ?>" class="btn btn-sm btn-outline-dark">Go to my dashboard</a>
+        <form method="POST" action="<?= h(BASE_URL) ?>/logout.php" class="d-inline">
+            <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+            <button type="submit" class="btn btn-sm btn-dark">Sign out</button>
+        </form>
+    </div>
+    <div class="small mt-2">Logging in below as someone else switches to that account.</div>
+</div>
+<?php endif; ?>
 <?php if ($info !== ''): ?><div class="alert alert-info"><?= h($info) ?></div><?php endif; ?>
 <?php if ($error !== ''): ?><div class="alert alert-danger"><?= h($error) ?></div><?php endif; ?>
 
 <!-- LOGIN FORM -->
 <form method="POST" id="loginForm">
     <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-    <input type="email" name="email" class="form-control mb-2" placeholder="Email" aria-label="Email"
-           maxlength="150" autocomplete="username" required
+    <input type="text" name="email" class="form-control mb-2" placeholder="Email or caregiver ID"
+           aria-label="Email or caregiver ID" maxlength="150" autocomplete="username" required
            value="<?= $mode === 'login' ? h($old['email']) : '' ?>">
     <input type="password" name="password" class="form-control mb-2" placeholder="Password"
            aria-label="Password" autocomplete="current-password" required>
     <button type="submit" name="login" class="btn btn-success w-100">Login</button>
+    <div class="small text-muted text-center mt-2">Caregivers can sign in with their caregiver ID (for example CG-0001).</div>
 </form>
 
 <!-- REGISTER FORM -->

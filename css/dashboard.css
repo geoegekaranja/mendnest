@@ -6,6 +6,7 @@
 /* Colour theme per area: admin = dark slate, patient = brand green */
 .admin-area   { --side-bg: #17242b; --side-hover: #22343d; --side-accent: #2fbf7a; }
 .patient-area { --side-bg: #0f6b4a; --side-hover: #13805a; --side-accent: #ffffff; }
+ .caregiver-area { --side-bg: #0b4f6c; --side-hover: #11688d; --side-accent: #5fd0ff; }
 
 body.dash {
     background: var(--dash-bg);
