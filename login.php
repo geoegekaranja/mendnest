@@ -5,10 +5,14 @@ require_once 'database/connection.php';
 const MAX_ATTEMPTS = 5;     // wrong passwords before the account is locked
 const LOCK_MINUTES = 15;
 
-/* Admin passwords typed straight into the database use this marker:
-       password column  =  #$YourPassword      (admins table only)
-   The admin logs in with  YourPassword  (WITHOUT the #$). */
+/* Staff passwords typed straight into the database can use this marker:
+       password column  =  #$YourPassword
+   The person logs in with  YourPassword  (WITHOUT the #$). */
 const ADMIN_TEMP_PREFIX = '#$';
+
+/* Which roles may use the "#$" marker. Patients are left out on purpose: they register on the
+   website, which stores a safe hash. Add 'patient' to the list if you want it for them too. */
+const MARKER_PASSWORD_ROLES = ['admin', 'caregiver'];
 
 /* What happens to a "#$..." password after a successful login?
      false = nothing. The password stays exactly as you saved it and works every time.
@@ -16,11 +20,12 @@ const ADMIN_TEMP_PREFIX = '#$';
      true  = the site replaces it with a real hash (recommended before the site goes live). */
 const UPGRADE_PASSWORDS_ON_LOGIN = false;
 
-/* The role is decided by WHICH TABLE the account is stored in:
+/* Each account table has its own role column. The table decides which role it may hold:
        admins     -> 'admin'
        caregivers -> 'caregiver'
        patients   -> 'patient'
-   There is no role column that could be wrong. */
+   Login reads the role stored in the row and checks it matches the table, so a wrong or empty
+   role can never open the wrong area. */
 const ACCOUNT_TABLES = ['admins' => 'admin', 'caregivers' => 'caregiver', 'patients' => 'patient'];
 
 // On your own computer (localhost) the technical reason for a database error is shown;
@@ -32,32 +37,46 @@ function dev_detail(Throwable $ex): string {
 
 /* Finds the account by email (or, for caregivers, by caregiver ID such as CG-0001).
    Looks in admins, then caregivers, then patients.
-   Adds 'role' and 'tbl' (the table it came from) to the row. */
+   Adds 'tbl' (the table it came from) and 'role_valid' (the stored role matches that table).
+   If one table cannot be read, the other tables are still searched, so the others can still log in.
+   The error is raised only when NO account was found, so a real database problem is never hidden. */
 function find_account(mysqli $conn, string $identifier): ?array {
-    foreach (ACCOUNT_TABLES as $tbl => $role) {
-        $sql = "SELECT id, name, email, password, is_active,
-                       (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
-                FROM `$tbl` WHERE email = ?";
-        if ($tbl === 'caregivers') {
-            $sql .= " OR caregiver_code = ?";
-        }
-        $sql .= " LIMIT 1";
+    $failure = null;
 
-        $stmt = $conn->prepare($sql);
-        if ($tbl === 'caregivers') {
-            $stmt->bind_param('ss', $identifier, $identifier);
-        } else {
-            $stmt->bind_param('s', $identifier);
+    foreach (ACCOUNT_TABLES as $tbl => $expectedRole) {
+        try {
+            $sql = "SELECT id, name, email, password, role, is_active,
+                           (locked_until IS NOT NULL AND locked_until > NOW()) AS is_locked
+                    FROM `$tbl` WHERE email = ?";
+            if ($tbl === 'caregivers') {
+                $sql .= " OR caregiver_code = ?";
+            }
+            $sql .= " LIMIT 1";
+
+            $stmt = $conn->prepare($sql);
+            if ($tbl === 'caregivers') {
+                $stmt->bind_param('ss', $identifier, $identifier);
+            } else {
+                $stmt->bind_param('s', $identifier);
+            }
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+        } catch (mysqli_sql_exception $ex) {
+            error_log("Account lookup failed in $tbl: " . $ex->getMessage());
+            $failure = $failure ?? $ex;
+            continue;
         }
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
 
         if ($row) {
-            $row['role'] = $role;
-            $row['tbl']  = $tbl;
+            $row['tbl']        = $tbl;                                  // from the constant above, never from the visitor
+            $row['role_valid'] = ($row['role'] === $expectedRole);
             return $row;
         }
+    }
+
+    if ($failure !== null) {
+        throw $failure;
     }
     return null;
 }
@@ -69,7 +88,9 @@ $current = current_user();
 $error = '';
 $info  = isset($_GET['timeout'])
     ? 'You were signed out due to inactivity. Please sign in again.'
-    : (isset($_GET['loggedout']) ? 'You have been signed out.' : '');
+    : (isset($_GET['ended'])
+        ? 'Your account is no longer active or has changed. Please sign in again, or contact support.'
+        : (isset($_GET['loggedout']) ? 'You have been signed out.' : ''));
 $mode  = 'login';           // which form to show: 'login' or 'register'
 $old   = ['name' => '', 'email' => ''];
 
@@ -97,22 +118,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // so timing doesn't reveal which accounts exist
                     $stored = $user['password'] ?? password_hash('dummy-password', PASSWORD_DEFAULT);
 
-                    if ($user !== null && $user['role'] === 'admin' && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
-                        // "#$" format: only ever accepted for rows in the admins table
+                    // "#$" marker: only for the roles listed above, and only when the role is valid
+                    $markerAllowed = $user !== null && $user['role_valid']
+                                     && in_array($user['role'], MARKER_PASSWORD_ROLES, true);
+
+                    if ($markerAllowed && str_starts_with($stored, ADMIN_TEMP_PREFIX)) {
                         $ok = hash_equals(substr($stored, strlen(ADMIN_TEMP_PREFIX)), $password);
                     } else {
                         // normal case: a real password hash
                         $ok = password_verify($password, $stored) && $user !== null;
                     }
 
-                    if ($ok && !$user['is_active']) {
+                    if ($ok && !$user['role_valid']) {
+                        $error = 'Your account has no valid role. Please contact support.';
+                    } elseif ($ok && !$user['is_active']) {
                         $error = 'This account has been disabled. Please contact support.';
                     } elseif ($ok) {
-                        $tbl = $user['tbl'];   // from the constant above, never from the visitor
+                        $tbl = $user['tbl'];
 
                         // Optional: replace a "#$..." password (or an outdated hash) with a fresh real hash
                         if (UPGRADE_PASSWORDS_ON_LOGIN
-                            && (($user['role'] === 'admin' && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
+                            && (($markerAllowed && str_starts_with($user['password'], ADMIN_TEMP_PREFIX))
                                 || password_needs_rehash($user['password'], PASSWORD_DEFAULT))) {
                             $new = password_hash($password, PASSWORD_DEFAULT);
                             $up = $conn->prepare("UPDATE `$tbl` SET password = ? WHERE id = ?");
@@ -138,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         unset($_SESSION['after_login']);
 
-                        login_user($user);
+                        login_user($user);                       // saves the role read from the database
                         redirect($next ?? (ROLE_HOME[$user['role']] ?? LOGIN_URL));
                     } else {
                         if ($user) {
@@ -191,7 +217,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'An account with this email already exists.';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    // Self-registration only ever writes to the patients table, so it can never create an admin or caregiver
+                    // Self-registration only ever writes to the patients table (its role is 'patient'),
+                    // so it can never create an admin or caregiver
                     $ins = $conn->prepare("INSERT INTO patients (name, email, password) VALUES (?, ?, ?)");
                     $ins->bind_param('sss', $old['name'], $old['email'], $hash);
                     $ins->execute();

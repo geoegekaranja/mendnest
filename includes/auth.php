@@ -37,6 +37,13 @@ const ROLE_HOME = [
 ];
 const LOGIN_URL = BASE_URL . '/login.php';
 
+/* Role -> the table that holds that kind of account. */
+const ROLE_TABLES = [
+    'admin'     => 'admins',
+    'caregiver' => 'caregivers',
+    'patient'   => 'patients',
+];
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -114,6 +121,47 @@ function logout_user(): void {
     session_destroy();
 }
 
+/* Re-reads the signed-in account from the database on every protected page, so a change made in
+   phpMyAdmin or on the Caregivers page applies at once, without waiting for the person to log in again:
+     - account deleted, disabled (is_active = 0), or its role changed or blank  -> signed out
+     - name or email changed                                                    -> the session is refreshed
+   If the database cannot be read (or this page has no connection), the session is trusted. */
+function verify_account(array $user): array {
+    global $conn;
+
+    $tbl = ROLE_TABLES[$user['role'] ?? ''] ?? null;
+    if ($tbl === null) {                                   // a role this site does not know
+        logout_user();
+        redirect(LOGIN_URL . '?ended=1');
+    }
+    if (!isset($conn) || !($conn instanceof mysqli)) {
+        return $user;
+    }
+
+    try {
+        $stmt = $conn->prepare("SELECT name, email, role, is_active FROM `$tbl` WHERE id = ?");
+        $stmt->bind_param('i', $user['id']);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } catch (mysqli_sql_exception $ex) {
+        error_log('verify_account failed: ' . $ex->getMessage());
+        return $user;
+    }
+
+    if (!$row || !$row['is_active'] || $row['role'] !== $user['role']) {
+        logout_user();
+        redirect(LOGIN_URL . '?ended=1');
+    }
+
+    if ($row['name'] !== $user['name'] || $row['email'] !== $user['email']) {
+        $_SESSION['auth']['name']  = (string)$row['name'];
+        $_SESSION['auth']['email'] = (string)$row['email'];
+        $user = $_SESSION['auth'];
+    }
+    return $user;
+}
+
 /* Top of any page that needs a signed-in user. */
 function require_login(): array {
     header('Cache-Control: no-store, no-cache, must-revalidate');   // no back-button access after logout
@@ -128,7 +176,7 @@ function require_login(): array {
         redirect(LOGIN_URL . '?timeout=1');
     }
     $_SESSION['last_active'] = time();
-    return $user;
+    return verify_account($user);
 }
 
 /* Top of role-restricted pages:  $admin = require_role('admin');
@@ -136,6 +184,7 @@ function require_login(): array {
 function require_role(string ...$roles): array {
     $user = require_login();
     if (!in_array($user['role'], $roles, true)) {
+        flash('warning', 'You do not have access to that page.');
         redirect_for_role($user['role']);
     }
     return $user;
