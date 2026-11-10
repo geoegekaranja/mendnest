@@ -282,8 +282,12 @@ body { font-family: 'Segoe UI', sans-serif; background: #f9fcfc; }
     <input type="text" name="email" class="form-control mb-2" placeholder="Email or caregiver ID"
            aria-label="Email or caregiver ID" maxlength="150" autocomplete="username" required
            value="<?= $mode === 'login' ? h($old['email']) : '' ?>">
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password"
+    <input type="password" data-pw name="password" class="form-control mb-2" placeholder="Password"
            aria-label="Password" autocomplete="current-password" required>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="showPwLogin" onclick="showPasswords('loginForm', this.checked)">
+        <label class="form-check-label small" for="showPwLogin">Show password</label>
+    </div>
     <button type="submit" name="login" class="btn btn-success w-100">Login</button>
     <div class="small text-muted text-center mt-2">Caregivers can sign in with their caregiver ID (for example CG-0001).</div>
 </form>
@@ -296,10 +300,14 @@ body { font-family: 'Segoe UI', sans-serif; background: #f9fcfc; }
     <input type="email" name="email" class="form-control mb-2" placeholder="Email" aria-label="Email"
            maxlength="150" autocomplete="username" required
            value="<?= $mode === 'register' ? h($old['email']) : '' ?>">
-    <input type="password" name="password" class="form-control mb-2" placeholder="Password (min. 8 characters)"
+    <input type="password" data-pw name="password" class="form-control mb-2" placeholder="Password (min. 8 characters)"
            aria-label="Password" minlength="8" maxlength="72" autocomplete="new-password" required>
-    <input type="password" name="confirm" class="form-control mb-2" placeholder="Confirm Password"
+    <input type="password" data-pw name="confirm" class="form-control mb-2" placeholder="Confirm Password"
            aria-label="Confirm password" minlength="8" maxlength="72" autocomplete="new-password" required>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="showPwRegister" onclick="showPasswords('registerForm', this.checked)">
+        <label class="form-check-label small" for="showPwRegister">Show password</label>
+    </div>
     <button type="submit" name="register" class="btn btn-primary w-100">Register</button>
 </form>
 
@@ -320,6 +328,11 @@ function setMode(mode) {
     document.getElementById("form-title").innerText = isLogin ? "Login" : "Register";
     document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
     document.querySelector(".toggle-btn").innerText = isLogin ? " Register" : " Login";
+}
+function showPasswords(formId, on) {
+    document.querySelectorAll('#' + formId + ' input[data-pw]').forEach(function (i) {
+        i.type = on ? 'text' : 'password';
+    });
 }
 function toggleForm() { setMode(currentMode === 'login' ? 'register' : 'login'); }
 setMode('<?= $mode === 'register' ? 'register' : 'login' ?>');
