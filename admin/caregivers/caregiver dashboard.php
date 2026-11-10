@@ -1,113 +1,135 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../database/connection.php';
-$admin = require_role('admin');   // only existing admins can create new admins
+require_once '../includes/accounts.php';
+$me  = require_role('caregiver');
+$cid = (int)$me['id'];
 
-$error = '';
-$old   = ['name' => '', 'email' => ''];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $old['name']  = trim((string)($_POST['name'] ?? ''));
-    $old['email'] = trim((string)($_POST['email'] ?? ''));
-    $password     = (string)($_POST['password'] ?? '');
-    $confirm      = (string)($_POST['confirm'] ?? '');
-
-    if (!csrf_valid()) {
-        $error = 'Your session expired. Please try again.';
-    } elseif ($old['name'] === '' || mb_strlen($old['name']) > 100) {
-        $error = 'Please enter a name (max 100 characters).';
-    } elseif (!filter_var($old['email'], FILTER_VALIDATE_EMAIL) || mb_strlen($old['email']) > 150) {
-        $error = 'Please enter a valid email address.';
-    } elseif (strlen($password) < 8 || strlen($password) > 72) {
-        $error = 'Password must be between 8 and 72 characters.';
-    } elseif ($password !== $confirm) {
-        $error = 'Passwords do not match.';
-    } else {
-        try {
-            // The email must be free in BOTH tables, so one login can never be ambiguous
-            $exists = false;
-            foreach (['admins', 'caregivers', 'patients'] as $tbl) {
-                $chk = $conn->prepare("SELECT id FROM `$tbl` WHERE email = ? LIMIT 1");
-                $chk->bind_param('s', $old['email']);
-                $chk->execute();
-                if ($chk->get_result()->num_rows > 0) { $exists = true; }
-                $chk->close();
-            }
-
-            if ($exists) {
-                $error = 'An account with this email already exists.';
-            } else {
-                // The password is ALWAYS hashed here; the account goes into the admins table
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $ins  = $conn->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
-                $ins->bind_param('sss', $old['name'], $old['email'], $hash);
-                $ins->execute();
-                $ins->close();
-
-                flash('success', 'Admin account created for ' . $old['email'] . '.');
-                redirect('add_admin.php');
-            }
-        } catch (mysqli_sql_exception $ex) {
-            error_log('Add admin error: ' . $ex->getMessage());
-            $error = ($ex->getCode() === 1062)
-                ? 'An account with this email already exists.'
-                : 'Could not create the account. Please try again.';
-        }
+function cg_count(mysqli $conn, string $sql, int $cid): int {
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $cid);
+        $stmt->execute();
+        $n = (int)$stmt->get_result()->fetch_row()[0];
+        $stmt->close();
+        return $n;
+    } catch (mysqli_sql_exception $ex) {
+        error_log('Caregiver dashboard count failed: ' . $ex->getMessage());
+        return 0;
     }
 }
 
-$admins = [];
+$assigned  = cg_count($conn, "SELECT COUNT(*) FROM bookings WHERE caregiver_id = ? AND status IN ('Pending','Confirmed')", $cid);
+$upcoming  = cg_count($conn, "SELECT COUNT(*) FROM bookings WHERE caregiver_id = ? AND status = 'Confirmed' AND appointment_date >= CURDATE()", $cid);
+$completed = cg_count($conn, "SELECT COUNT(*) FROM bookings WHERE caregiver_id = ? AND status = 'Completed'", $cid);
+
+$profile = ['caregiver_code' => '', 'specialization' => '', 'photo' => null, 'is_available' => 1];
+$visits  = [];
 try {
-    $admins = $conn->query("SELECT name, email FROM admins ORDER BY id")->fetch_all(MYSQLI_ASSOC);
+    $stmt = $conn->prepare("SELECT caregiver_code, specialization, photo, is_available FROM caregivers WHERE id = ?");
+    $stmt->bind_param('i', $cid);
+    $stmt->execute();
+    $profile = $stmt->get_result()->fetch_assoc() ?: $profile;
+    $stmt->close();
+
+    $stmt = $conn->prepare(
+        "SELECT * FROM bookings
+         WHERE caregiver_id = ? AND status IN ('Pending','Confirmed') AND appointment_date >= CURDATE()
+         ORDER BY appointment_date ASC, id ASC
+         LIMIT 8"
+    );
+    $stmt->bind_param('i', $cid);
+    $stmt->execute();
+    $visits = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 } catch (mysqli_sql_exception $ex) {
-    error_log('Admin list failed: ' . $ex->getMessage());
+    error_log('Caregiver dashboard load failed: ' . $ex->getMessage());
 }
 
-$pageTitle = 'Manage Admins';
-$active    = 'admins';
-include '../includes/admin_header.php';
+$statusClass = [
+    'Pending'   => 'bg-warning text-dark',
+    'Confirmed' => 'bg-success',
+    'Completed' => 'bg-info text-dark',
+    'Cancelled' => 'bg-secondary',
+];
+$photoUrl = caregiver_photo_url($profile['photo'] ?? null);
+
+$pageTitle = 'My Dashboard';
+$active    = 'dashboard';
+include '../includes/dashboard_header.php';
 ?>
 
-<div class="row">
-    <div class="col-lg-5 mb-4">
-        <div class="card-box">
-            <h5>Add a new admin</h5>
-
-            <?php if ($error !== ''): ?>
-                <div class="alert alert-danger"><?= h($error) ?></div>
-            <?php endif; ?>
-
-            <form method="POST" autocomplete="off">
-                <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-                <input type="text" name="name" class="form-control mb-2" placeholder="Full name"
-                       maxlength="100" required value="<?= h($old['name']) ?>">
-                <input type="email" name="email" class="form-control mb-2" placeholder="Email"
-                       maxlength="150" required value="<?= h($old['email']) ?>">
-                <input type="password" name="password" class="form-control mb-2"
-                       placeholder="Password (min. 8 characters)" minlength="8" maxlength="72"
-                       autocomplete="new-password" required>
-                <input type="password" name="confirm" class="form-control mb-3"
-                       placeholder="Confirm password" minlength="8" maxlength="72"
-                       autocomplete="new-password" required>
-                <button type="submit" class="btn btn-success w-100">Create admin</button>
-            </form>
-            <p class="small text-muted mt-3 mb-0">The password is hashed before it is saved. It is never stored as plain text.</p>
+<div class="card-box mb-4 d-flex align-items-center gap-3">
+    <?php if ($photoUrl): ?>
+        <img src="<?= h($photoUrl) ?>" alt="" width="64" height="64" class="rounded-circle" style="object-fit:cover;">
+    <?php else: ?>
+        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fs-4"
+             style="width:64px;height:64px;"><?= h(mb_strtoupper(mb_substr((string)$me['name'], 0, 1))) ?></div>
+    <?php endif; ?>
+    <div>
+        <h4 class="mb-0">Welcome, <?= h($me['name']) ?></h4>
+        <div class="text-muted">
+            Caregiver ID <strong><?= h($profile['caregiver_code']) ?></strong>
+            <?php if (!empty($profile['specialization'])): ?> &middot; <?= h($profile['specialization']) ?><?php endif; ?>
         </div>
-    </div>
-
-    <div class="col-lg-7 mb-4">
-        <div class="card-box">
-            <h5>Current admins</h5>
-            <table class="table align-middle mb-0">
-                <thead><tr><th>Name</th><th>Email</th></tr></thead>
-                <tbody>
-                <?php foreach ($admins as $a): ?>
-                    <tr><td><?= h($a['name']) ?></td><td><?= h($a['email']) ?></td></tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+        <?php if (!$profile['is_available']): ?>
+            <span class="badge bg-secondary">Currently marked unavailable for new assignments</span>
+        <?php endif; ?>
     </div>
 </div>
 
-<?php include '../includes/admin_footer.php'; ?>
+<div class="row">
+    <?php foreach ([
+        ['Active assignments', $assigned,  'bi-clipboard2-pulse', 'primary'],
+        ['Upcoming visits',    $upcoming,  'bi-calendar-event',   'success'],
+        ['Completed',          $completed, 'bi-check2-circle',    'info'],
+    ] as [$label, $count, $icon, $colour]): ?>
+    <div class="col-md-4 mb-4">
+        <div class="card-box h-100 d-flex align-items-center gap-3">
+            <div class="rounded-3 bg-<?= h($colour) ?> bg-opacity-10 text-<?= h($colour) ?> d-flex align-items-center justify-content-center"
+                 style="width:56px;height:56px;font-size:1.6rem;"><i class="bi <?= h($icon) ?>"></i></div>
+            <div>
+                <h5 class="mb-0"><?= h($label) ?></h5>
+                <h2 class="mb-0"><?= (int)$count ?></h2>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+<div class="card-box">
+    <h5 class="mb-3">Upcoming care assigned to you</h5>
+
+    <?php if ($visits): ?>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr><th>Patient</th><th>Service</th><th>Date</th><th>Where / contact</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            <?php foreach ($visits as $v): ?>
+                <tr>
+                    <td><?= h($v['patient_name']) ?></td>
+                    <td><?= h($v['service']) ?></td>
+                    <td>
+                        <?= h($v['appointment_date']) ?>
+                        <?php if (!empty($v['preferred_time'])): ?><br><small class="text-muted"><?= h($v['preferred_time']) ?></small><?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($v['service_address'])): ?>
+                            <?= h($v['service_address']) ?><?= !empty($v['city']) ? ', ' . h($v['city']) : '' ?><br>
+                        <?php endif; ?>
+                        <?php if (!empty($v['phone'])): ?><small class="text-muted"><?= h($v['phone']) ?></small><?php endif; ?>
+                    </td>
+                    <td><span class="badge <?= h($statusClass[$v['status']] ?? 'bg-secondary') ?>"><?= h($v['status']) ?></span></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php else: ?>
+        <p class="text-muted mb-0">Nothing is assigned to you yet. New assignments will appear here once an admin confirms them.</p>
+    <?php endif; ?>
+</div>
+
+<?php include '../includes/dashboard_footer.php'; ?>
