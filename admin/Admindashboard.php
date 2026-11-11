@@ -25,7 +25,7 @@ $cards = [
     ['Unassigned Bookings',   safe_count($conn, "SELECT COUNT(*) FROM bookings WHERE caregiver_id IS NULL AND status <> 'Cancelled'"),  admin_link('bookings.php') ? 'bookings.php?filter=unassigned' : null,     'bi-person-x',        'danger'],
     ['Available Caregivers',  safe_count($conn, "SELECT COUNT(*) FROM caregivers WHERE is_available = 1"),                              admin_link('caregivers.php'),                                             'bi-heart-pulse',     'success'],
     ['Consultation Requests', safe_count($conn, "SELECT COUNT(*) FROM consultations"),                                                  admin_link('consultations.php'),                                          'bi-chat-dots',       'info'],
-    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients"),                                                       null,                                                                     'bi-people',          'success'],
+    ['Total Patients',        safe_count($conn, "SELECT COUNT(*) FROM patients"),                                                       admin_link('patients.php'),                                                                     'bi-people',          'success'],
     ['Testimonials',          safe_count($conn, "SELECT COUNT(*) FROM testimonials"),                                                   admin_link('testimonials.php'),                                           'bi-star',            'secondary'],
     ['Awaiting Approval',     safe_count($conn, "SELECT COUNT(*) FROM testimonials WHERE is_approved = 0"),                             admin_link('testimonials.php'),                                           'bi-patch-question',  'danger'],
 ];

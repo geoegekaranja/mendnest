@@ -23,6 +23,7 @@ $menus = [
         ['payments',      'Payments',      'payments.php',       'bi-cash-coin'],
         ['messages',      'Messages',      'messages.php',       'bi-envelope'],
         ['caregivers',    'Caregivers',    'caregivers.php',     'bi-heart-pulse'],
+        ['patients',      'Patients',      'patients.php',       'bi-people'],
         ['blogs',         'Blog Posts',    'blogs.php',          'bi-journal-text'],
         ['testimonials',  'Testimonials',  'testimonials.php',   'bi-star'],
         ['admins',        'Admins',        'add_admin.php',      'bi-person-gear'],
